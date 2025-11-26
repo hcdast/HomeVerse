@@ -1,0 +1,65 @@
+.rich-text-editor {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rich-text-editor .ql-container {
+  min-height: 400px;
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+.rich-text-editor .ql-editor {
+  min-height: 400px;
+  padding: 20px;
+}
+
+.rich-text-editor .ql-editor.ql-blank::before {
+  font-style: normal;
+  color: #999;
+}
+
+.rich-text-editor .ql-toolbar {
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 12px;
+  background: #f8f9fa;
+}
+
+.rich-text-editor .ql-toolbar .ql-stroke {
+  stroke: #333;
+}
+
+.rich-text-editor .ql-toolbar .ql-fill {
+  fill: #333;
+}
+
+.rich-text-editor .ql-toolbar button:hover,
+.rich-text-editor .ql-toolbar button.ql-active {
+  color: #007bff;
+}
+
+.rich-text-editor .ql-toolbar button:hover .ql-stroke,
+.rich-text-editor .ql-toolbar button.ql-active .ql-stroke {
+  stroke: #007bff;
+}
+
+.rich-text-editor .ql-toolbar button:hover .ql-fill,
+.rich-text-editor .ql-toolbar button.ql-active .ql-fill {
+  fill: #007bff;
+}
+
+/* 只读模式样式 */
+.rich-text-editor.readonly .ql-toolbar {
+  display: none;
+}
+
+.rich-text-editor.readonly .ql-container {
+  border: none;
+}
+
