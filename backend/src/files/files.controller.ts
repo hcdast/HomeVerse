@@ -148,5 +148,78 @@ export class FilesController {
     const user = await this.usersService.findById(req.user.userId);
     return this.filesService.getStorageUsage(user.familyId);
   }
+
+  // ============= 文件夹管理接口 =============
+
+  // 获取文件夹结构
+  @Get('folders/structure')
+  async getFolderStructure(@Request() req) {
+    const user = await this.usersService.findById(req.user.userId);
+    return this.filesService.getFolderStructure(user.familyId);
+  }
+
+  // 获取文件夹内容
+  @Get('folders/contents')
+  async getFolderContents(@Request() req, @Query('path') path?: string) {
+    const user = await this.usersService.findById(req.user.userId);
+    return this.filesService.getFolderContents(user.familyId, path);
+  }
+
+  // 创建文件夹
+  @Post('folders')
+  async createFolder(@Body() body: { folderName: string; parentPath?: string }, @Request() req) {
+    const user = await this.usersService.findById(req.user.userId);
+    return this.filesService.createFolder(user.familyId, body.folderName, body.parentPath);
+  }
+
+  // 移动文件
+  @Post(':id/move')
+  async moveFile(@Param('id') id: string, @Body() body: { targetPath: string }, @Request() req) {
+    const file = await this.filesService.findById(id);
+    if (!file) {
+      throw new NotFoundException('文件不存在');
+    }
+    
+    const user = await this.usersService.findById(req.user.userId);
+    if (file.familyId !== user.familyId) {
+      throw new NotFoundException('无权访问此文件');
+    }
+    
+    const updatedFile = await this.filesService.moveFile(id, body.targetPath);
+    return {
+      message: '文件移动成功',
+      file: updatedFile,
+    };
+  }
+
+  // 删除文件夹
+  @Delete('folders')
+  async deleteFolder(@Query('path') path: string, @Request() req) {
+    if (!path || path === '/') {
+      throw new NotFoundException('无法删除根目录');
+    }
+    
+    const user = await this.usersService.findById(req.user.userId);
+    const result = await this.filesService.deleteFolder(user.familyId, path);
+    return {
+      message: '文件夹删除成功',
+      deletedCount: result.deletedCount,
+    };
+  }
+
+  // 重命名文件夹
+  @Post('folders/rename')
+  async renameFolder(@Body() body: { oldPath: string; newName: string }, @Request() req) {
+    if (!body.oldPath || body.oldPath === '/') {
+      throw new NotFoundException('无法重命名根目录');
+    }
+    
+    const user = await this.usersService.findById(req.user.userId);
+    const result = await this.filesService.renameFolder(user.familyId, body.oldPath, body.newName);
+    return {
+      message: '文件夹重命名成功',
+      modifiedCount: result.modifiedCount,
+    };
+  }
 }
 

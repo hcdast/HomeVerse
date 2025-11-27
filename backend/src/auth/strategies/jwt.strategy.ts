@@ -23,7 +23,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException('用户不存在');
     }
-    return { userId: user._id, email: user.email, role: user.role };
+    return { 
+      userId: user._id, 
+      email: user.email, 
+      role: user.role,
+      familyId: user.familyId,
+      permissions: user.permissions || {},
+    };
   }
 }
 

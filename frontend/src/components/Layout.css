@@ -61,6 +61,17 @@
   font-size: 1.2rem;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.search-container {
+  max-width: 300px;
+  flex: 1;
+}
+
 .user-info {
   display: flex;
   align-items: center;

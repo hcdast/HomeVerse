@@ -173,5 +173,55 @@ export class ArticlesController {
       article: updatedArticle,
     };
   }
+
+  // 删除评论
+  @Delete(':id/comment/:commentId')
+  async deleteComment(
+    @Param('id') id: string,
+    @Param('commentId') commentId: string,
+    @Request() req,
+  ) {
+    const article = await this.articlesService.findById(id);
+    if (!article) {
+      throw new NotFoundException('文章不存在');
+    }
+    
+    // 验证权限
+    const user = await this.usersService.findById(req.user.userId);
+    if (article.familyId !== user.familyId) {
+      throw new NotFoundException('无权访问此文章');
+    }
+    
+    const updatedArticle = await this.articlesService.deleteComment(id, commentId, req.user.userId);
+    return {
+      message: '评论删除成功',
+      article: updatedArticle,
+    };
+  }
+
+  // 点赞评论
+  @Post(':id/comment/:commentId/like')
+  async toggleCommentLike(
+    @Param('id') id: string,
+    @Param('commentId') commentId: string,
+    @Request() req,
+  ) {
+    const article = await this.articlesService.findById(id);
+    if (!article) {
+      throw new NotFoundException('文章不存在');
+    }
+    
+    // 验证权限
+    const user = await this.usersService.findById(req.user.userId);
+    if (article.familyId !== user.familyId) {
+      throw new NotFoundException('无权访问此文章');
+    }
+    
+    const updatedArticle = await this.articlesService.toggleCommentLike(id, commentId, req.user.userId);
+    return {
+      message: '操作成功',
+      article: updatedArticle,
+    };
+  }
 }
 

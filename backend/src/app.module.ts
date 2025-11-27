@@ -10,6 +10,10 @@ import { AlbumsModule } from './albums/albums.module';
 import { FilesModule } from './files/files.module';
 import { ArticlesModule } from './articles/articles.module';
 import { AiModule } from './ai/ai.module';
+import { DatabaseModule } from './database/database.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { SearchModule } from './search/search.module';
+import { ActivityLogsModule } from './activity-logs/activity-logs.module';
 
 @Module({
   imports: [
@@ -36,11 +40,15 @@ import { AiModule } from './ai/ai.module';
     AuthModule,
     UsersModule,
     FamiliesModule,
-          AlbumsModule,
-          FilesModule,
-          ArticlesModule,
-          AiModule,
-        ],
+    AlbumsModule,
+    FilesModule,
+    ArticlesModule,
+    AiModule,
+    DatabaseModule,
+    NotificationsModule,
+    SearchModule,
+    ActivityLogsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

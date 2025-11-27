@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import api from '@/services/api';
 import Loading from '@/components/Loading';
 import RichTextEditor from '@/components/RichTextEditor';
+import AiProviderSelector from '@/components/AiProviderSelector';
+import aiService, { AiProviderType } from '@/services/aiService';
 import './Articles.css';
 
 interface Article {
@@ -31,6 +33,8 @@ const Articles = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [showAiPanel, setShowAiPanel] = useState(false);
+  const [selectedAiProvider, setSelectedAiProvider] = useState<AiProviderType | undefined>();
+  // const [showProviderSelector, setShowProviderSelector] = useState(false);
 
   useEffect(() => {
     fetchArticles();
@@ -108,14 +112,14 @@ const Articles = () => {
 
     setAiLoading(true);
     try {
-      const response = await api.post('/ai/generate-content', {
-        prompt: aiPrompt,
+      const content = await aiService.generateContent(aiPrompt, {
         maxTokens: 2000,
         temperature: 0.7,
+        provider: selectedAiProvider,
       });
       setNewArticle({
         ...newArticle,
-        content: response.data.content,
+        content: content,
       });
       setAiPrompt('');
       setShowAiPanel(false);
@@ -137,10 +141,10 @@ const Articles = () => {
     setAiLoading(true);
     try {
       const topic = newArticle.content.substring(0, 200);
-      const response = await api.post('/ai/generate-title', { topic });
+      const title = await aiService.generateTitle(topic, selectedAiProvider);
       setNewArticle({
         ...newArticle,
-        title: response.data.title,
+        title: title,
       });
     } catch (error: any) {
       console.error('AI 生成标题失败:', error);
@@ -159,12 +163,10 @@ const Articles = () => {
 
     setAiLoading(true);
     try {
-      const response = await api.post('/ai/generate-excerpt', {
-        content: newArticle.content,
-      });
+      const excerpt = await aiService.generateExcerpt(newArticle.content, selectedAiProvider);
       setNewArticle({
         ...newArticle,
-        excerpt: response.data.excerpt,
+        excerpt: excerpt,
       });
     } catch (error: any) {
       console.error('AI 生成摘要失败:', error);
@@ -183,12 +185,10 @@ const Articles = () => {
 
     setAiLoading(true);
     try {
-      const response = await api.post('/ai/optimize-content', {
-        content: newArticle.content,
-      });
+      const content = await aiService.optimizeContent(newArticle.content, undefined, selectedAiProvider);
       setNewArticle({
         ...newArticle,
-        content: response.data.content,
+        content: content,
       });
     } catch (error: any) {
       console.error('AI 优化失败:', error);
@@ -282,6 +282,17 @@ const Articles = () => {
 
                 {showAiPanel && (
                   <div className="ai-panel">
+                    <div className="ai-provider-section">
+                      <label>选择 AI 模型：</label>
+                      <div className="provider-selector-compact">
+                        <AiProviderSelector
+                          value={selectedAiProvider}
+                          onChange={setSelectedAiProvider}
+                          showOnlyConfigured={true}
+                          compact={true}
+                        />
+                      </div>
+                    </div>
                     <textarea
                       placeholder="输入提示词，让 AI 帮你生成文章内容..."
                       value={aiPrompt}
@@ -395,6 +406,17 @@ const Articles = () => {
 
                 {showAiPanel && (
                   <div className="ai-panel">
+                    <div className="ai-provider-section">
+                      <label>选择 AI 模型：</label>
+                      <div className="provider-selector-compact">
+                        <AiProviderSelector
+                          value={selectedAiProvider}
+                          onChange={setSelectedAiProvider}
+                          showOnlyConfigured={true}
+                          compact={true}
+                        />
+                      </div>
+                    </div>
                     <textarea
                       placeholder="输入提示词，让 AI 帮你生成文章内容..."
                       value={aiPrompt}

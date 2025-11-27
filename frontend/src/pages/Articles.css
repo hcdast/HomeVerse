@@ -250,6 +250,22 @@
   margin-bottom: 12px;
 }
 
+.ai-provider-section {
+  margin-bottom: 12px;
+}
+
+.ai-provider-section label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.provider-selector-compact {
+  margin-bottom: 8px;
+}
+
 .ai-panel textarea {
   width: 100%;
   padding: 8px;

@@ -31,17 +31,16 @@ export class AuthService {
       username,
       email,
       password: hashedPassword,
+      role: 'owner', // 注册用户默认为所有者
     });
 
     // 创建默认家庭
     const family = await this.familiesService.create({
       name: `${username}的家庭`,
       createdBy: user._id.toString(),
+      members: [user._id.toString()],
     });
 
-    // 将用户添加到家庭
-    await this.familiesService.addMember(family._id.toString(), user._id.toString());
-    
     // 更新用户的家庭ID
     await this.usersService.updateFamilyId(user._id.toString(), family._id.toString());
 
@@ -52,11 +51,14 @@ export class AuthService {
     return {
       access_token,
       user: {
+        _id: user._id,
         id: user._id,
+        userId: user._id,
         username: user.username,
         email: user.email,
         role: user.role,
-        familyId: family._id,
+        familyId: family._id.toString(),
+        permissions: user.permissions || {},
       },
     };
   }
@@ -73,15 +75,23 @@ export class AuthService {
 
   // 用户登录
   async login(user: any) {
-    const payload = { email: user.email, sub: user._id };
+    const payload = { 
+      email: user.email, 
+      sub: user._id,
+      role: user.role,
+      familyId: user.familyId,
+    };
     return {
       access_token: this.jwtService.sign(payload),
       user: {
+        _id: user._id,
         id: user._id,
+        userId: user._id,
         username: user.username,
         email: user.email,
         role: user.role,
         familyId: user.familyId,
+        permissions: user.permissions || {},
       },
     };
   }

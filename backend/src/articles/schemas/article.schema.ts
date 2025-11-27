@@ -27,6 +27,9 @@ export class Comment {
   @Prop({ required: true })
   content: string; // 评论内容
 
+  @Prop({ type: [String], ref: 'User', default: [] })
+  likes: string[]; // 点赞用户ID列表
+
   @Prop({ type: [CommentReplySchema], default: [] })
   replies: CommentReply[]; // 回复列表
 

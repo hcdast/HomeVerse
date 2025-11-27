@@ -3,11 +3,19 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import api from '@/services/api';
 
 interface User {
+  _id?: string;
   id: string;
+  userId?: string;
   username: string;
   email: string;
   role: string;
   familyId?: string;
+  permissions?: {
+    albums?: { read: boolean; write: boolean; delete: boolean };
+    files?: { read: boolean; write: boolean; delete: boolean };
+    articles?: { read: boolean; write: boolean; delete: boolean };
+    members?: { read: boolean; write: boolean; delete: boolean };
+  };
 }
 
 interface AuthState {

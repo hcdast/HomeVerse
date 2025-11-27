@@ -20,8 +20,19 @@ export class User {
   @Prop({ type: String, ref: 'Family' })
   familyId: string; // 所属家庭ID
 
-  @Prop({ default: 'member', enum: ['admin', 'member'] })
-  role: string; // 角色: admin/member
+  @Prop({ 
+    default: 'member', 
+    enum: ['owner', 'admin', 'editor', 'viewer', 'member'] 
+  })
+  role: string; // 角色: owner(所有者)/admin(管理员)/editor(编辑者)/viewer(访客)/member(成员)
+  
+  @Prop({ type: Object, default: {} })
+  permissions: {
+    albums?: { read: boolean; write: boolean; delete: boolean };
+    files?: { read: boolean; write: boolean; delete: boolean };
+    articles?: { read: boolean; write: boolean; delete: boolean };
+    members?: { read: boolean; write: boolean; delete: boolean };
+  }; // 自定义权限
 
   @Prop({ default: Date.now })
   createdAt: Date;
