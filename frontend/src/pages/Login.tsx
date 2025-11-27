@@ -6,7 +6,7 @@ import './Auth.css';
 const Login = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuthStore();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ identifier: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,10 +23,10 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
+      await login(formData.identifier, formData.password);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || '登录失败，请检查邮箱和密码');
+      setError(err.response?.data?.message || '登录失败，请检查用户名/邮箱和密码');
     } finally {
       setLoading(false);
     }
@@ -39,13 +39,13 @@ const Login = () => {
         <h1 className="auth-title">登录 HomeVerse</h1>
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label>邮箱</label>
+            <label>用户名 / 邮箱</label>
             <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              type="text"
+              value={formData.identifier}
+              onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
               required
-              placeholder="请输入邮箱"
+              placeholder="请输入用户名或邮箱"
             />
           </div>
           <div className="form-group">

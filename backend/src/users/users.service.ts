@@ -28,6 +28,16 @@ export class UsersService {
     return this.userModel.findOne({ username }).exec();
   }
 
+  // 根据邮箱或用户名查找用户
+  async findByEmailOrUsername(identifier: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({
+      $or: [
+        { email: identifier },
+        { username: identifier }
+      ]
+    }).exec();
+  }
+
   // 更新用户信息
   async update(id: string, updateUserDto: any): Promise<UserDocument> {
     return this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true }).exec();

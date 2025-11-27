@@ -17,10 +17,16 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const { username, email, password } = registerDto;
 
-    // 检查用户是否已存在
-    const existingUser = await this.usersService.findByEmail(email);
-    if (existingUser) {
+    // 检查邮箱是否已存在
+    const existingUserByEmail = await this.usersService.findByEmail(email);
+    if (existingUserByEmail) {
       throw new ConflictException('该邮箱已被注册');
+    }
+
+    // 检查用户名是否已存在
+    const existingUserByUsername = await this.usersService.findByUsername(username);
+    if (existingUserByUsername) {
+      throw new ConflictException('该用户名已被使用');
     }
 
     // 加密密码
@@ -63,9 +69,9 @@ export class AuthService {
     };
   }
 
-  // 验证用户登录
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
+  // 验证用户登录（支持邮箱或用户名）
+  async validateUser(identifier: string, password: string): Promise<any> {
+    const user = await this.usersService.findByEmailOrUsername(identifier);
     if (user && (await bcrypt.compare(password, user.password))) {
       const { password, ...result } = user.toObject();
       return result;
