@@ -4,6 +4,8 @@ import { FamiliesService } from './families.service';
 import { FamiliesController } from './families.controller';
 import { Family, FamilySchema } from './schemas/family.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -11,6 +13,8 @@ import { User, UserSchema } from '../users/schemas/user.schema';
       { name: Family.name, schema: FamilySchema },
       { name: User.name, schema: UserSchema },
     ]),
+    NotificationsModule,
+    MailModule,
   ],
   controllers: [FamiliesController],
   providers: [FamiliesService],

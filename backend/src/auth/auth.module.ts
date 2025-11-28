@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { FamiliesModule } from '../families/families.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 
@@ -13,6 +14,7 @@ import { LocalStrategy } from './strategies/local.strategy';
   imports: [
     UsersModule,
     FamiliesModule,
+    NotificationsModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

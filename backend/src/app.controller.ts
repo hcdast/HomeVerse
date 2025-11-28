@@ -13,7 +13,7 @@ export class AppController {
       status: 'running',
       message: this.appService.getHello(),
       endpoints: {
-        health: '/health',
+        healthCheck: '/health-check',
         auth: '/auth/*',
         users: '/users/*',
         families: '/families/*',
@@ -22,11 +22,19 @@ export class AppController {
         articles: '/articles/*',
         ai: '/ai/*',
         database: '/database/*',
+        calendar: '/calendar/*',
+        todos: '/todos/*',
+        finance: '/finance/*',
+        recipes: '/recipes/*',
+        health: '/health/*',
+        growth: '/growth/*',
+        wiki: '/wiki/*',
+        passwords: '/passwords/*',
       },
     };
   }
 
-  @Get('health')
+  @Get('health-check')
   healthCheck() {
     return {
       status: 'ok',

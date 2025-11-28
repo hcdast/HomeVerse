@@ -55,33 +55,97 @@ const Dashboard = () => {
   };
 
   const quickActions = [
+    // 核心功能
     {
-      title: '创建相册',
+      title: '家庭日历',
+      icon: '📅',
+      description: '管理重要日程和事件',
+      path: '/calendar',
+      permission: null,
+      category: '核心功能',
+    },
+    {
+      title: '待办清单',
+      icon: '✅',
+      description: '追踪家庭任务',
+      path: '/todos',
+      permission: null,
+      category: '核心功能',
+    },
+    {
+      title: '财务记账',
+      icon: '💰',
+      description: '管理收支，掌握财务',
+      path: '/finance',
+      permission: null,
+      category: '核心功能',
+    },
+    // 资料管理
+    {
+      title: '家庭相册',
       icon: '📷',
-      description: '上传和管理家庭照片',
+      description: '珍藏美好回忆',
       path: '/albums',
-      permission: { resource: Resource.ALBUMS, action: Action.WRITE },
+      permission: { resource: Resource.ALBUMS, action: Action.READ },
+      category: '资料管理',
     },
     {
-      title: '上传文件',
+      title: '文件管理',
       icon: '📁',
-      description: '存储重要文件',
+      description: '安全存储文件',
       path: '/files',
-      permission: { resource: Resource.FILES, action: Action.WRITE },
+      permission: { resource: Resource.FILES, action: Action.READ },
+      category: '资料管理',
     },
     {
-      title: '写文章',
+      title: '文章管理',
       icon: '📝',
       description: '记录生活点滴',
       path: '/articles',
-      permission: { resource: Resource.ARTICLES, action: Action.WRITE },
+      permission: { resource: Resource.ARTICLES, action: Action.READ },
+      category: '资料管理',
+    },
+    // 生活助手
+    {
+      title: '家庭食谱',
+      icon: '🍳',
+      description: '收藏美味佳肴',
+      path: '/recipes',
+      permission: null,
+      category: '生活助手',
     },
     {
-      title: '管理成员',
-      icon: '👥',
-      description: '邀请和管理家庭成员',
-      path: '/family-members',
-      permission: { resource: Resource.MEMBERS, action: Action.READ },
+      title: '健康档案',
+      icon: '🏥',
+      description: '管理健康信息',
+      path: '/health',
+      permission: null,
+      category: '生活助手',
+    },
+    {
+      title: '成长记录',
+      icon: '👶',
+      description: '记录成长轨迹',
+      path: '/growth',
+      permission: null,
+      category: '生活助手',
+    },
+    // 工具
+    {
+      title: '知识库',
+      icon: '📚',
+      description: '整理家庭知识',
+      path: '/wiki',
+      permission: null,
+      category: '工具',
+    },
+    {
+      title: '密码管理',
+      icon: '🔐',
+      description: '安全存储密码',
+      path: '/passwords',
+      permission: null,
+      category: '工具',
     },
     {
       title: 'AI 助手',
@@ -89,6 +153,7 @@ const Dashboard = () => {
       description: 'AI 辅助创作',
       path: '/ai-settings',
       permission: null,
+      category: '工具',
     },
   ];
 
@@ -139,32 +204,44 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 快捷操作 */}
-      <div className="quick-actions-section">
-        <h2>快捷操作</h2>
-        <div className="quick-actions-grid">
-          {quickActions.map((action) => {
-            // 检查权限
-            const hasAccess = !action.permission || 
-              hasPermission(action.permission.resource, action.permission.action);
-            
-            if (!hasAccess) return null;
+      {/* 功能模块 */}
+      <div className="modules-section">
+        <h2>功能模块</h2>
+        
+        {/* 按分类显示 */}
+        {['核心功能', '资料管理', '生活助手', '工具'].map(category => {
+          const categoryActions = quickActions.filter(action => action.category === category);
+          if (categoryActions.length === 0) return null;
+          
+          return (
+            <div key={category} className="module-category">
+              <h3 className="category-name">{category}</h3>
+              <div className="quick-actions-grid">
+                {categoryActions.map((action) => {
+                  // 检查权限
+                  const hasAccess = !action.permission || 
+                    hasPermission(action.permission.resource, action.permission.action);
+                  
+                  if (!hasAccess) return null;
 
-            return (
-              <div
-                key={action.path}
-                className="quick-action-card"
-                onClick={() => navigate(action.path)}
-              >
-                <div className="action-icon">{action.icon}</div>
-                <div className="action-content">
-                  <h3>{action.title}</h3>
-                  <p>{action.description}</p>
-                </div>
+                  return (
+                    <div
+                      key={action.path}
+                      className="quick-action-card"
+                      onClick={() => navigate(action.path)}
+                    >
+                      <div className="action-icon">{action.icon}</div>
+                      <div className="action-content">
+                        <h3>{action.title}</h3>
+                        <p>{action.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* 权限说明 */}

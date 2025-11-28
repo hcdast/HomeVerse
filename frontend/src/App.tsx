@@ -16,6 +16,15 @@ const AiSettings = lazy(() => import('./pages/AiSettings'));
 const FamilyMembers = lazy(() => import('./pages/FamilyMembers'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const Search = lazy(() => import('./pages/Search'));
+// 新增功能页面
+const Calendar = lazy(() => import('./pages/Calendar'));
+const Finance = lazy(() => import('./pages/Finance'));
+const Recipes = lazy(() => import('./pages/Recipes'));
+const Todos = lazy(() => import('./pages/Todos'));
+const Health = lazy(() => import('./pages/Health'));
+const Wiki = lazy(() => import('./pages/Wiki'));
+const Passwords = lazy(() => import('./pages/Passwords'));
+const Growth = lazy(() => import('./pages/Growth'));
 
 // 受保护的路由组件
 const ProtectedRoute = () => {
@@ -32,14 +41,27 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<ProtectedRoute />}>
             <Route index element={<Dashboard />} />
+            {/* 工作台 */}
+            <Route path="calendar" element={<Calendar />} />
+            <Route path="todos" element={<Todos />} />
+            {/* 生活管理 */}
+            <Route path="finance" element={<Finance />} />
+            <Route path="recipes" element={<Recipes />} />
+            <Route path="health" element={<Health />} />
+            <Route path="growth" element={<Growth />} />
+            {/* 资料库 */}
             <Route path="albums" element={<Albums />} />
             <Route path="files" element={<Files />} />
             <Route path="articles" element={<Articles />} />
-            <Route path="family-members" element={<FamilyMembers />} />
+            <Route path="wiki" element={<Wiki />} />
+            {/* 工具 */}
+            <Route path="passwords" element={<Passwords />} />
             <Route path="ai-settings" element={<AiSettings />} />
+            {/* 设置 */}
+            <Route path="family-members" element={<FamilyMembers />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="search" element={<Search />} />
-            <Route path="profile" element={<Profile />} />
           </Route>
         </Routes>
       </Suspense>

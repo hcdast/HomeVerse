@@ -1,3 +1,5 @@
+@import './styles/variables.css';
+
 * {
   margin: 0;
   padding: 0;
@@ -10,10 +12,42 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-image: url('/images/backgrounds/main-bg.jpg');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* 轻微的渐变蒙版层 */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.2) 50%, rgba(240, 147, 251, 0.25) 100%);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
-  min-height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 添加一层微妙的纹理效果 */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 0.02) 2px, rgba(255, 255, 255, 0.02) 4px);
+  pointer-events: none;
+  z-index: 1;
 }
 
 @keyframes gradientShift {

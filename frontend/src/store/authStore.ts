@@ -23,7 +23,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   login: (identifier: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, inviteToken?: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User) => void;
   setToken: (token: string) => void;
@@ -48,8 +48,13 @@ export const useAuthStore = create<AuthState>()(
         api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       },
       
-      register: async (username: string, email: string, password: string) => {
-        const response = await api.post('/auth/register', { username, email, password });
+      register: async (username: string, email: string, password: string, inviteToken?: string) => {
+        const response = await api.post('/auth/register', { 
+          username, 
+          email, 
+          password,
+          inviteToken  // 携带邀请token
+        });
         const { access_token, user } = response.data;
         set({ 
           token: access_token, 

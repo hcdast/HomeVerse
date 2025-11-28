@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength, IsOptional, IsString } from 'class-validator';
 
 export class RegisterDto {
   @IsNotEmpty({ message: '用户名不能为空' })
@@ -11,5 +11,9 @@ export class RegisterDto {
   @IsNotEmpty({ message: '密码不能为空' })
   @MinLength(6, { message: '密码长度至少6位' })
   password: string;
+
+  @IsOptional()
+  @IsString()
+  inviteToken?: string; // 邀请token（可选）
 }
 

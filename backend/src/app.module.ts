@@ -14,6 +14,15 @@ import { DatabaseModule } from './database/database.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { SearchModule } from './search/search.module';
 import { ActivityLogsModule } from './activity-logs/activity-logs.module';
+import { MailModule } from './mail/mail.module';
+import { CalendarModule } from './calendar/calendar.module';
+import { FinanceModule } from './finance/finance.module';
+import { RecipesModule } from './recipes/recipes.module';
+import { TodosModule } from './todos/todos.module';
+import { HealthModule } from './health/health.module';
+import { WikiModule } from './wiki/wiki.module';
+import { PasswordsModule } from './passwords/passwords.module';
+import { GrowthModule } from './growth/growth.module';
 
 @Module({
   imports: [
@@ -48,6 +57,16 @@ import { ActivityLogsModule } from './activity-logs/activity-logs.module';
     NotificationsModule,
     SearchModule,
     ActivityLogsModule,
+    MailModule,
+    // 新增功能模块
+    CalendarModule,
+    FinanceModule,
+    RecipesModule,
+    TodosModule,
+    HealthModule,
+    WikiModule,
+    PasswordsModule,
+    GrowthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

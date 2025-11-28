@@ -1,6 +1,6 @@
-import axios from 'axios';
+import api from './api'; // 使用配置好的 api 实例
 
-const API_URL = '/api/search';
+const API_URL = '/search';
 
 export interface SearchResult {
   type: 'article' | 'file' | 'album' | 'photo';
@@ -32,7 +32,7 @@ class SearchService {
     page?: number;
     limit?: number;
   }): Promise<SearchResponse> {
-    const response = await axios.get(API_URL, { params });
+    const response = await api.get(API_URL, { params });
     return response.data;
   }
 
@@ -46,13 +46,13 @@ class SearchService {
     page?: number;
     limit?: number;
   }): Promise<{ results: SearchResult[]; total: number }> {
-    const response = await axios.get(`${API_URL}/advanced`, { params });
+    const response = await api.get(`${API_URL}/advanced`, { params });
     return response.data;
   }
 
   // 获取热门标签
   async getPopularTags(limit?: number): Promise<{ tag: string; count: number }[]> {
-    const response = await axios.get(`${API_URL}/tags/popular`, {
+    const response = await api.get(`${API_URL}/tags/popular`, {
       params: { limit },
     });
     return response.data;

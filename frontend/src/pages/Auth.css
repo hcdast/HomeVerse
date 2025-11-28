@@ -3,23 +3,42 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
+  background-image: url('/images/backgrounds/auth-bg.jpg');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   padding: 2rem;
   position: relative;
   overflow: hidden;
 }
 
+/* 添加轻微的渐变蒙版层 */
 .auth-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.25) 50%, rgba(240, 147, 251, 0.3) 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 旋转光效 */
+.auth-container::after {
   content: '';
   position: absolute;
   top: -50%;
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
   animation: rotate 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
 }
 
 @keyframes rotate {
@@ -32,7 +51,7 @@
 }
 
 .auth-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 3rem;
@@ -41,7 +60,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.3);
   position: relative;
-  z-index: 1;
+  z-index: 10;
   animation: slideUp 0.5s ease;
 }
 

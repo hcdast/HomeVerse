@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { Family, FamilyDocument } from './schemas/family.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { UserRole } from '../common/enums/role.enum';
+import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class FamiliesService {
@@ -12,6 +14,8 @@ export class FamiliesService {
   constructor(
     @InjectModel(Family.name) private familyModel: Model<FamilyDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private notificationsService: NotificationsService,
+    private mailService: MailService,
   ) {}
 
   // 创建家庭
@@ -74,7 +78,7 @@ export class FamiliesService {
     familyId: string,
     email: string,
     role: UserRole = UserRole.MEMBER,
-  ): Promise<{ message: string; inviteToken?: string; user?: any }> {
+  ): Promise<{ message: string; inviteToken?: string; inviteLink?: string; user?: any }> {
     // 验证输入
     if (!email || !email.includes('@')) {
       throw new BadRequestException('邮箱格式不正确');
@@ -122,6 +126,55 @@ export class FamiliesService {
 
       this.logger.log(`用户 ${email} 已加入家庭 ${familyId}，角色: ${role}`);
       
+      // 发送站内通知
+      try {
+        await this.notificationsService.notifyMemberInvited(
+          existingUser._id.toString(),
+          familyId,
+          family.name || '家庭',
+        );
+        
+        // 通知其他家庭成员有新成员加入
+        const otherMembers = await this.userModel
+          .find({ 
+            familyId, 
+            _id: { $ne: existingUser._id } 
+          })
+          .select('_id')
+          .exec();
+        
+        if (otherMembers.length > 0) {
+          const memberIds = otherMembers.map(m => m._id.toString());
+          await this.notificationsService.notifyMemberJoined(
+            memberIds,
+            familyId,
+            existingUser.username,
+          );
+        }
+        
+        this.logger.log(`已发送站内通知给用户 ${email}`);
+      } catch (error) {
+        this.logger.error(`发送站内通知失败: ${error.message}`);
+      }
+      
+      // 发送邮件通知
+      try {
+        // 获取邀请人信息
+        const inviter = await this.userModel.findOne({ familyId, role: { $in: [UserRole.OWNER, UserRole.ADMIN] } });
+        const inviterName = inviter ? inviter.username : '家庭管理员';
+        
+        await this.mailService.sendMemberInvitation(
+          email,
+          family.name || '家庭',
+          inviterName,
+          role,
+        );
+        this.logger.log(`已发送邀请邮件到 ${email}`);
+      } catch (error) {
+        this.logger.error(`发送邮件失败: ${error.message}`);
+        // 不影响主流程
+      }
+      
       // 返回用户信息（不含密码）
       const { password, ...userWithoutPassword } = existingUser.toObject();
       
@@ -135,6 +188,7 @@ export class FamiliesService {
     const inviteToken = Buffer.from(
       JSON.stringify({
         familyId,
+        familyName: family.name || '家庭',
         email,
         role,
         timestamp: Date.now(),
@@ -143,9 +197,32 @@ export class FamiliesService {
     
     this.logger.log(`生成邀请令牌，邀请 ${email} 加入家庭 ${familyId}，角色: ${role}`);
     
+    // 生成注册链接（带邀请token）
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const inviteLink = `${frontendUrl}/register?invite=${inviteToken}`;
+    
+    // 发送邀请邮件（给未注册用户）
+    try {
+      // 获取邀请人信息
+      const inviter = await this.userModel.findOne({ familyId, role: { $in: [UserRole.OWNER, UserRole.ADMIN] } });
+      const inviterName = inviter ? inviter.username : '家庭管理员';
+      
+      await this.mailService.sendMemberInvitation(
+        email,
+        family.name || '家庭',
+        inviterName,
+        role,
+        inviteLink,
+      );
+      this.logger.log(`已发送邀请邮件到 ${email}，邀请链接: ${inviteLink}`);
+    } catch (error) {
+      this.logger.error(`发送邮件失败: ${error.message}`);
+    }
+    
     return {
-      message: '用户未注册，已生成邀请链接。请让对方先注册账号，然后使用该邮箱登录后会自动加入家庭',
+      message: '已发送邀请邮件到对方邮箱，对方点击邮件中的链接即可注册并自动加入家庭',
       inviteToken,
+      inviteLink, // 返回邀请链接，可供复制分享
     };
   }
 
@@ -228,6 +305,22 @@ export class FamiliesService {
 
     this.logger.log(`用户 ${user.username}(${userId}) 角色已从 ${oldRole} 更新为 ${newRole}`);
     
+    // 发送角色变更通知
+    try {
+      const operator = await this.userModel.findOne({ familyId, role: operatorRole });
+      if (operator) {
+        await this.notificationsService.notifyRoleChanged(
+          userId,
+          familyId,
+          newRole,
+          operator.username,
+        );
+        this.logger.log(`已发送角色变更通知给用户 ${user.username}`);
+      }
+    } catch (error) {
+      this.logger.error(`发送角色变更通知失败: ${error.message}`);
+    }
+    
     // 返回不含密码的用户信息
     const { password, ...userWithoutPassword } = user.toObject();
     
@@ -285,6 +378,21 @@ export class FamiliesService {
     await user.save();
 
     this.logger.log(`用户 ${user.username}(${userId}) 自定义权限已更新`);
+    
+    // 发送权限变更通知
+    try {
+      const operator = await this.userModel.findOne({ familyId, role: operatorRole });
+      if (operator) {
+        await this.notificationsService.notifyPermissionChanged(
+          userId,
+          familyId,
+          operator.username,
+        );
+        this.logger.log(`已发送权限变更通知给用户 ${user.username}`);
+      }
+    } catch (error) {
+      this.logger.error(`发送权限变更通知失败: ${error.message}`);
+    }
     
     // 返回不含密码的用户信息
     const { password, ...userWithoutPassword } = user.toObject();
