@@ -13,7 +13,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # 项目目录
-PROJECT_DIR="/var/www/homeverse"
+PROJECT_DIR="/root/deploy/HomeVerse"
 BACKEND_DIR="$PROJECT_DIR/backend"
 FRONTEND_DIR="$PROJECT_DIR/frontend"
 
