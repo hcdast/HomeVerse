@@ -30,8 +30,31 @@ const Recipes = () => {
   };
 
   const handleCreate = async () => {
+    // 调试：查看当前表单数据
+    console.log('当前表单数据:', formData);
+    console.log('菜名:', formData.name, '烹饪时间:', formData.cookingTime);
+    
+    // 验证必填字段
+    if (!formData.name || !formData.name.trim()) {
+      alert('请填写菜名');
+      return;
+    }
+    
+    if (!formData.cookingTime) {
+      alert('请填写烹饪时间');
+      return;
+    }
+
     try {
-      await api.post('/recipes', formData);
+      console.log('提交食谱数据:', formData);
+      
+      const response = await api.post('/recipes', {
+        ...formData,
+        cookingTime: Number(formData.cookingTime),
+      });
+      
+      console.log('食谱创建成功:', response.data);
+      
       setShowCreateModal(false);
       setFormData({
         name: '',
@@ -41,8 +64,12 @@ const Recipes = () => {
         ingredients: [],
         steps: [],
       });
-      loadRecipes();
+      
+      await loadRecipes();
+      console.log('食谱列表已刷新');
     } catch (error: any) {
+      console.error('创建失败:', error);
+      console.error('错误详情:', error.response?.data);
       alert(error.response?.data?.message || '创建失败');
     }
   };
@@ -126,12 +153,16 @@ const Recipes = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>添加食谱</h2>
             <div className="form-group">
-              <label>菜名</label>
+              <label>菜名 *</label>
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="输入菜名"
+                onChange={(e) => {
+                  console.log('菜名输入:', e.target.value);
+                  setFormData({ ...formData, name: e.target.value });
+                }}
+                placeholder="例如：红烧肉、宫保鸡丁"
+                required
               />
             </div>
             <div className="form-group">
@@ -139,17 +170,22 @@ const Recipes = () => {
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="简单描述"
+                placeholder="简单描述这道菜的特点"
                 rows={2}
               />
             </div>
             <div className="form-group">
-              <label>烹饪时间（分钟）</label>
+              <label>烹饪时间（分钟）*</label>
               <input
                 type="number"
                 value={formData.cookingTime}
-                onChange={(e) => setFormData({ ...formData, cookingTime: e.target.value })}
-                placeholder="30"
+                onChange={(e) => {
+                  console.log('烹饪时间输入:', e.target.value);
+                  setFormData({ ...formData, cookingTime: e.target.value });
+                }}
+                placeholder="例如：30、60、90"
+                min="1"
+                required
               />
             </div>
             <div className="form-group">
@@ -163,11 +199,18 @@ const Recipes = () => {
                 <option value="hard">困难</option>
               </select>
             </div>
+            <div className="form-tips">
+              <small>* 为必填项</small>
+            </div>
             <div className="modal-actions">
               <button type="button" onClick={() => setShowCreateModal(false)}>
                 取消
               </button>
-              <button type="submit" onClick={handleCreate}>
+              <button 
+                type="submit" 
+                onClick={handleCreate}
+                disabled={!formData.name || !formData.cookingTime}
+              >
                 创建
               </button>
             </div>

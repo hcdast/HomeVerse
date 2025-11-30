@@ -65,6 +65,31 @@ const Calendar = () => {
     }
   };
 
+  const handleDeleteEvent = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('确定删除此事件？')) return;
+    
+    try {
+      await api.delete(`/calendar/${id}`);
+      loadData();
+    } catch (error: any) {
+      alert(error.response?.data?.message || '删除失败');
+    }
+  };
+
+  const handleToggleStatus = async (id: string, currentStatus: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+    
+    try {
+      await api.put(`/calendar/${id}/status`, { status: newStatus });
+      loadData();
+    } catch (error: any) {
+      alert(error.response?.data?.message || '操作失败');
+    }
+  };
+
   const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
 
   return (
@@ -145,17 +170,21 @@ const Calendar = () => {
 
         {/* 事件列表 */}
         <div className="events-panel card">
-          <h3>📌 本月事件</h3>
+          <h3>📌 本月事件 ({events.length})</h3>
           {events.length === 0 ? (
             <p className="empty-text">本月暂无事件</p>
           ) : (
             <div className="events-list">
               {events.map((event: any) => (
-                <div key={event._id} className="event-item">
+                <div 
+                  key={event._id} 
+                  className={`event-item ${event.status === 'completed' ? 'completed' : ''}`}
+                >
                   <span className="event-icon">
                     {event.type === 'birthday' ? '🎂' : 
                      event.type === 'anniversary' ? '💝' : 
-                     event.type === 'todo' ? '✅' : '📌'}
+                     event.type === 'todo' ? '✅' : 
+                     event.type === 'reminder' ? '⏰' : '📌'}
                   </span>
                   <div className="event-info">
                     <div className="event-title">{event.title}</div>
@@ -163,9 +192,35 @@ const Calendar = () => {
                       {new Date(event.startDate).toLocaleDateString('zh-CN', {
                         month: 'long',
                         day: 'numeric',
-                        weekday: 'short'
+                        weekday: 'short',
+                        hour: event.allDay ? undefined : '2-digit',
+                        minute: event.allDay ? undefined : '2-digit'
                       })}
                     </div>
+                    {event.location && (
+                      <div className="event-location">📍 {event.location}</div>
+                    )}
+                    {event.description && (
+                      <div className="event-description">{event.description}</div>
+                    )}
+                  </div>
+                  <div className="event-actions">
+                    {(event.type === 'todo' || event.type === 'reminder') && (
+                      <button
+                        className={`status-btn ${event.status === 'completed' ? 'completed' : ''}`}
+                        onClick={(e) => handleToggleStatus(event._id, event.status, e)}
+                        title={event.status === 'completed' ? '标记为未完成' : '标记为完成'}
+                      >
+                        {event.status === 'completed' ? '✓' : '○'}
+                      </button>
+                    )}
+                    <button
+                      className="delete-event-btn"
+                      onClick={(e) => handleDeleteEvent(event._id, e)}
+                      title="删除事件"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </div>
               ))}
