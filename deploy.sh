@@ -6,6 +6,7 @@
 echo "🚀 HomeVerse 部署脚本"
 echo "===================="
 
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -25,7 +26,31 @@ fi
 
 echo -e "${GREEN}✓ 权限检查通过${NC}"
 
-# 步骤1：检查依赖
+# 步骤1：拉取最新代码
+echo ""
+echo "📥 拉取最新代码..."
+
+if [ -d "$PROJECT_DIR/.git" ]; then
+    cd $PROJECT_DIR
+    
+    # 保存当前分支
+    CURRENT_BRANCH=$(git branch --show-current)
+    echo "当前分支: $CURRENT_BRANCH"
+    
+    # 拉取最新代码
+    echo "正在拉取最新代码..."
+    git pull origin $CURRENT_BRANCH
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✓ 代码更新成功${NC}"
+    else
+        echo -e "${YELLOW}⚠ Git pull 失败，继续使用现有代码${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠ 不是 Git 仓库，跳过 pull 操作${NC}"
+fi
+
+# 步骤2：检查依赖
 echo ""
 echo "📋 检查依赖..."
 
@@ -65,7 +90,7 @@ if ! command -v pm2 &> /dev/null; then
 fi
 echo -e "${GREEN}✓ PM2 已安装${NC}"
 
-# 步骤2：部署后端
+# 步骤3：部署后端
 echo ""
 echo "🔧 部署后端..."
 
@@ -100,7 +125,7 @@ pm2 start npm --name "homeverse-backend" -- run start:prod
 
 echo -e "${GREEN}✓ 后端部署完成${NC}"
 
-# 步骤3：部署前端
+# 步骤4：部署前端
 echo ""
 echo "🎨 部署前端..."
 
@@ -126,7 +151,7 @@ fi
 
 echo -e "${GREEN}✓ 前端构建完成${NC}"
 
-# 步骤4：移动前端到 /var/www
+# 步骤5：移动前端到 /var/www
 echo ""
 echo "📦 移动前端到 /var/www..."
 
@@ -144,7 +169,7 @@ else
     exit 1
 fi
 
-# 步骤5：配置 Nginx
+# 步骤6：配置 Nginx
 echo ""
 echo "⚙️ 配置 Nginx..."
 
@@ -173,7 +198,7 @@ else
     echo -e "${YELLOW}⚠ nginx.conf 文件不存在，请手动配置${NC}"
 fi
 
-# 步骤6：设置开机自启
+# 步骤7：设置开机自启
 echo ""
 echo "⚡ 配置开机自启..."
 pm2 startup
