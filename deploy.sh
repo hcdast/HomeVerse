@@ -79,6 +79,7 @@ cd $BACKEND_DIR
 # 安装依赖
 echo "📦 安装后端依赖..."
 npm install --production
+npm audit fix --force
 
 # 检查 .env
 if [ ! -f ".env" ]; then
@@ -134,6 +135,7 @@ mkdir -p $TARGET_WWW/frontend
 
 if [ -d "$FRONTEND_DIR/dist" ]; then
     cp -r $FRONTEND_DIR/dist $TARGET_WWW/frontend/
+
     chown -R www-data:www-data $TARGET_WWW/frontend
     chmod -R 755 $TARGET_WWW/frontend
     echo -e "${GREEN}✓ 前端文件已移动到 /var/www/homeverse/frontend${NC}"
