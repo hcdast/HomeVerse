@@ -125,7 +125,24 @@ fi
 
 echo -e "${GREEN}✓ 前端构建完成${NC}"
 
-# 步骤4：配置 Nginx
+# 步骤4：移动前端到 /var/www
+echo ""
+echo "📦 移动前端到 /var/www..."
+
+TARGET_WWW="/var/www/homeverse"
+mkdir -p $TARGET_WWW/frontend
+
+if [ -d "$FRONTEND_DIR/dist" ]; then
+    cp -r $FRONTEND_DIR/dist $TARGET_WWW/frontend/
+    chown -R www-data:www-data $TARGET_WWW/frontend
+    chmod -R 755 $TARGET_WWW/frontend
+    echo -e "${GREEN}✓ 前端文件已移动到 /var/www/homeverse/frontend${NC}"
+else
+    echo -e "${RED}✗ 前端 dist 目录不存在${NC}"
+    exit 1
+fi
+
+# 步骤5：配置 Nginx
 echo ""
 echo "⚙️ 配置 Nginx..."
 
@@ -134,7 +151,7 @@ if [ -f "$PROJECT_DIR/nginx.conf" ]; then
     cp $PROJECT_DIR/nginx.conf /etc/nginx/sites-available/homeverse
     
     # 创建软链接
-    ln -sf /etc/nginx/sites-available/homeverse /etc/nginx/sites-enabled/homeverse
+    # ln -sf /etc/nginx/sites-available/homeverse /etc/nginx/sites-enabled/homeverse
     
     # 删除默认配置
     rm -f /etc/nginx/sites-enabled/default
@@ -154,7 +171,7 @@ else
     echo -e "${YELLOW}⚠ nginx.conf 文件不存在，请手动配置${NC}"
 fi
 
-# 步骤5：设置开机自启
+# 步骤6：设置开机自启
 echo ""
 echo "⚡ 配置开机自启..."
 pm2 startup
@@ -176,10 +193,16 @@ echo "📝 后续操作:"
 echo "   1. 修改 backend/.env 配置"
 echo "   2. 修改 nginx.conf 中的域名"
 echo "   3. 配置 SSL 证书（生产环境）"
-echo "   4. 重新加载: sudo systemctl reload nginx"
+echo ""
+echo "📂 部署位置:"
+echo "   前端: /var/www/homeverse/frontend/dist"
+echo "   后端: /root/deploy/HomeVerse/backend"
 echo ""
 echo "🔍 查看日志:"
 echo "   后端: pm2 logs homeverse-backend"
 echo "   Nginx: sudo tail -f /var/log/nginx/homeverse_error.log"
+echo ""
+echo "🧪 测试访问:"
+echo "   curl http://localhost"
 echo ""
 
