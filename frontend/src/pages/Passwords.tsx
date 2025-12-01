@@ -123,7 +123,7 @@ const Passwords = () => {
                   </div>
                   <div className="password-username">👤 {pwd.username}</div>
                   <div className="password-field">
-                    {revealedPassword?.id === pwd._id ? (
+                    {revealedPassword?.id === pwd._id && revealedPassword ? (
                       <div className="revealed-password">
                         <span className="password-text">{revealedPassword.password}</span>
                         <button

@@ -91,7 +91,7 @@ const Wiki = () => {
                   </div>
                   {page.tags && page.tags.length > 0 && (
                     <div className="page-tags">
-                      {page.tags.map((tag, index) => (
+                      {page.tags.map((tag: string, index: number) => (
                         <span key={index} className="tag">#{tag}</span>
                       ))}
                     </div>

@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useEffect, useState } from 'react';
 import NotificationBell from './NotificationBell';
@@ -7,7 +7,6 @@ import Sidebar from './Sidebar';
 import './Layout.css';
 
 const Layout = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuthStore();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -18,22 +17,6 @@ const Layout = () => {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
-
-  const navItems = [
-    { path: '/', label: '首页', icon: '🏠' },
-    { path: '/calendar', label: '日历', icon: '📅' },
-    { path: '/todos', label: '待办', icon: '✅' },
-    { path: '/finance', label: '记账', icon: '💰' },
-    { path: '/albums', label: '相册', icon: '📷' },
-    { path: '/files', label: '文件', icon: '📁' },
-    { path: '/articles', label: '文章', icon: '📝' },
-    { path: '/recipes', label: '食谱', icon: '🍳' },
-    { path: '/wiki', label: '知识库', icon: '📚' },
-    { path: '/health', label: '健康', icon: '🏥' },
-    { path: '/growth', label: '成长', icon: '👶' },
-    { path: '/passwords', label: '密码', icon: '🔐' },
-    { path: '/family-members', label: '成员', icon: '👥' },
-  ];
 
   return (
     <div className="layout">

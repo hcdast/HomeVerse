@@ -89,7 +89,7 @@ const Health = () => {
   };
 
   const getTypeIcon = (type: string) => {
-    const icons = {
+    const icons: Record<string, string> = {
       checkup: '📋',
       medication: '💊',
       illness: '🤒',
@@ -100,7 +100,7 @@ const Health = () => {
   };
 
   const getTypeName = (type: string) => {
-    const names = {
+    const names: Record<string, string> = {
       checkup: '体检',
       medication: '用药',
       illness: '疾病',

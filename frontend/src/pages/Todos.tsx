@@ -59,7 +59,7 @@ const Todos = () => {
   };
 
   const getPriorityColor = (priority: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       high: '#f44336',
       medium: '#ff9800',
       low: '#4caf50',
