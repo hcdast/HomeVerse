@@ -15,9 +15,8 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AlbumsService } from './albums.service';
 import { UsersService } from '../users/users.service';
+import { StorageService } from '../storage/storage.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 
 @Controller('albums')
 @UseGuards(JwtAuthGuard)
@@ -25,6 +24,7 @@ export class AlbumsController {
   constructor(
     private readonly albumsService: AlbumsService,
     private readonly usersService: UsersService,
+    private readonly storageService: StorageService,
   ) {}
 
   // 获取相册列表
@@ -93,19 +93,19 @@ export class AlbumsController {
       throw new NotFoundException('无权访问此相册');
     }
     
-    // 删除相册中的所有照片文件
-    const fs = require('fs');
+    // 删除相册中的所有照片文件（从 MinIO）
     if (album.photos && album.photos.length > 0) {
-      album.photos.forEach((photo: any) => {
-        const filePath = `.${photo.path}`;
-        if (fs.existsSync(filePath)) {
-          try {
-            fs.unlinkSync(filePath);
-          } catch (error) {
-            console.error('删除照片文件失败:', error);
-          }
+      const objectPaths = album.photos
+        .map((photo: any) => this.storageService.extractObjectPath(photo.path))
+        .filter(path => path !== null);
+      
+      if (objectPaths.length > 0) {
+        try {
+          await this.storageService.deleteFiles(objectPaths);
+        } catch (error) {
+          console.error('从 MinIO 删除照片失败:', error);
         }
-      });
+      }
     }
     
     return this.albumsService.delete(id);
@@ -115,13 +115,6 @@ export class AlbumsController {
   @Post(':id/photos')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/photos',
-        filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
       limits: { fileSize: 10 * 1024 * 1024 }, // 10MB限制
       fileFilter: (req, file, cb) => {
         // 只允许图片文件
@@ -152,13 +145,16 @@ export class AlbumsController {
       throw new NotFoundException('无权访问此相册');
     }
     
+    // 上传到 MinIO
+    const uploadResult = await this.storageService.uploadFile(file, 'photos');
+    
     const photo = {
-      filename: file.filename,
-      originalName: file.originalname,
-      path: `/uploads/photos/${file.filename}`,
-      size: file.size,
+      filename: uploadResult.filename,
+      originalName: uploadResult.originalName,
+      path: uploadResult.url,  // 存储 MinIO 的公网 URL
+      size: uploadResult.size,
       metadata: {
-        mimeType: file.mimetype,
+        mimeType: uploadResult.mimeType,
       },
       uploadedAt: new Date(),
     };
@@ -168,6 +164,7 @@ export class AlbumsController {
       message: '照片上传成功',
       photo: updatedAlbum.photos[updatedAlbum.photos.length - 1],
       album: updatedAlbum,
+      url: uploadResult.url,
     };
   }
 
@@ -189,7 +186,21 @@ export class AlbumsController {
       throw new NotFoundException('无权访问此相册');
     }
     
-    const updatedAlbum = await this.albumsService.removePhoto(id, photoId);
+    const { album: updatedAlbum, deletedPhoto } = await this.albumsService.removePhoto(id, photoId);
+    
+    // 从 MinIO 删除照片文件
+    if (deletedPhoto && deletedPhoto.path) {
+      try {
+        const objectPath = this.storageService.extractObjectPath(deletedPhoto.path);
+        if (objectPath) {
+          await this.storageService.deleteFile(objectPath);
+        }
+      } catch (error) {
+        console.error('从 MinIO 删除照片失败:', error);
+        // 继续返回成功，数据库记录已删除
+      }
+    }
+    
     return {
       message: '照片删除成功',
       album: updatedAlbum,

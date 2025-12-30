@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import AiProviderSelector from '@/components/AiProviderSelector';
 import aiService, { AiProviderType } from '@/services/aiService';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './AiSettings.css';
 
 const AiSettings = () => {
   const [currentProvider, setCurrentProvider] = useState<AiProviderType | undefined>();
   const [loading, setLoading] = useState(true);
+  const { toast, hideToast, success, error } = useToast();
 
   useEffect(() => {
     loadCurrentProvider();
@@ -26,10 +29,10 @@ const AiSettings = () => {
     try {
       await aiService.setProvider(provider);
       setCurrentProvider(provider);
-      alert('AI 提供商切换成功！');
-    } catch (error) {
-      console.error('切换 AI 提供商失败:', error);
-      alert('切换失败，请重试');
+      success('AI 提供商切换成功！');
+    } catch (err) {
+      console.error('切换 AI 提供商失败:', err);
+      error('切换失败，请重试');
     }
   };
 
@@ -47,6 +50,7 @@ const AiSettings = () => {
 
   return (
     <div className="ai-settings-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <h1>AI 设置</h1>
         <p className="page-subtitle">配置和管理 AI 提供商</p>

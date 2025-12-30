@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/services/api';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Health.css';
 
 const Health = () => {
@@ -8,6 +10,7 @@ const Health = () => {
   const [records, setRecords] = useState<any[]>([]);
   const [familyMembers, setFamilyMembers] = useState<any[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { toast, hideToast, error } = useToast();
   const [formData, setFormData] = useState({
     userId: '',
     type: 'checkup',
@@ -72,9 +75,9 @@ const Health = () => {
       // 重新加载数据
       await loadRecords();
       console.log('数据已刷新，当前记录数:', records.length);
-    } catch (error: any) {
-      console.error('创建失败:', error);
-      alert(error.response?.data?.message || '创建失败');
+    } catch (err: any) {
+      console.error('创建失败:', err);
+      error(err.response?.data?.message || '创建失败');
     }
   };
 
@@ -112,6 +115,7 @@ const Health = () => {
 
   return (
     <div className="health-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1 className="page-title">🏥 健康档案</h1>

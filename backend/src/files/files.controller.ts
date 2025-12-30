@@ -17,10 +17,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { FilesService } from './files.service';
 import { UsersService } from '../users/users.service';
+import { StorageService } from '../storage/storage.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
-import * as fs from 'fs';
 
 @Controller('files')
 @UseGuards(JwtAuthGuard)
@@ -28,6 +26,7 @@ export class FilesController {
   constructor(
     private readonly filesService: FilesService,
     private readonly usersService: UsersService,
+    private readonly storageService: StorageService,
   ) {}
 
   // 获取文件列表
@@ -41,13 +40,6 @@ export class FilesController {
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/files',
-        filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
       limits: { fileSize: 50 * 1024 * 1024 }, // 50MB限制
     }),
   )
@@ -63,12 +55,15 @@ export class FilesController {
     const user = await this.usersService.findById(req.user.userId);
     const tags = body.tags ? body.tags.split(',').map(t => t.trim()).filter(t => t) : [];
     
+    // 上传到 MinIO
+    const uploadResult = await this.storageService.uploadFile(file, 'files');
+    
     const createdFile = await this.filesService.create({
-      filename: file.filename,
-      originalName: file.originalname,
-      path: `/uploads/files/${file.filename}`,
-      size: file.size,
-      mimeType: file.mimetype,
+      filename: uploadResult.filename,
+      originalName: uploadResult.originalName,
+      path: uploadResult.url,  // 存储 MinIO 的公网 URL
+      size: uploadResult.size,
+      mimeType: uploadResult.mimeType,
       familyId: user.familyId,
       uploadedBy: req.user.userId,
       folder: body.folder || '/',
@@ -80,10 +75,11 @@ export class FilesController {
     return {
       message: '文件上传成功',
       file: createdFile,
+      url: uploadResult.url,
     };
   }
 
-  // 下载文件
+  // 下载文件（重定向到 MinIO URL）
   @Get('download/:id')
   async downloadFile(@Param('id') id: string, @Request() req, @Res() res: Response) {
     const file = await this.filesService.findById(id);
@@ -100,15 +96,9 @@ export class FilesController {
     // 增加下载次数
     await this.filesService.incrementDownloads(id);
 
-    // 检查文件是否存在
-    const filePath = `.${file.path}`;
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: '文件不存在' });
-    }
-
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(file.originalName)}"`);
-    res.setHeader('Content-Type', file.mimeType);
-    return res.sendFile(filePath, { root: '.' });
+    // 直接重定向到 MinIO 的公网 URL
+    // file.path 现在存储的是完整的 MinIO URL
+    return res.redirect(file.path);
   }
 
   // 删除文件
@@ -125,15 +115,15 @@ export class FilesController {
       throw new NotFoundException('无权访问此文件');
     }
     
-    // 删除物理文件
-    const filePath = `.${file.path}`;
-    if (fs.existsSync(filePath)) {
-      try {
-        fs.unlinkSync(filePath);
-      } catch (error) {
-        console.error('删除文件失败:', error);
-        // 继续删除数据库记录
+    // 从 MinIO 删除文件
+    try {
+      const objectPath = this.storageService.extractObjectPath(file.path);
+      if (objectPath) {
+        await this.storageService.deleteFile(objectPath);
       }
+    } catch (error) {
+      console.error('从 MinIO 删除文件失败:', error);
+      // 继续删除数据库记录
     }
     
     await this.filesService.delete(id);
@@ -201,6 +191,23 @@ export class FilesController {
     
     const user = await this.usersService.findById(req.user.userId);
     const result = await this.filesService.deleteFolder(user.familyId, path);
+    
+    // 从 MinIO 删除所有文件
+    if (result.deletedFilePaths && result.deletedFilePaths.length > 0) {
+      try {
+        const objectPaths = result.deletedFilePaths
+          .map(filePath => this.storageService.extractObjectPath(filePath))
+          .filter(p => p !== null) as string[];
+        
+        if (objectPaths.length > 0) {
+          await this.storageService.deleteFiles(objectPaths);
+        }
+      } catch (error) {
+        console.error('从 MinIO 删除文件夹内文件失败:', error);
+        // 继续返回成功，数据库记录已删除
+      }
+    }
+    
     return {
       message: '文件夹删除成功',
       deletedCount: result.deletedCount,

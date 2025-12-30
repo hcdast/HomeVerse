@@ -148,10 +148,21 @@ export class FilesService {
     };
   }
 
-  // 删除文件夹及其所有内容
-  async deleteFolder(familyId: string, folderPath: string): Promise<{ deletedCount: number }> {
+  // 删除文件夹及其所有内容（返回被删除文件的路径用于删除 MinIO 文件）
+  async deleteFolder(familyId: string, folderPath: string): Promise<{ deletedCount: number; deletedFilePaths: string[] }> {
     // 标准化路径
     const normalizedPath = folderPath === '/' ? '/' : '/' + folderPath.split('/').filter(p => p).join('/');
+    
+    // 先获取要删除的所有文件（用于删除 MinIO 资源）
+    const filesToDelete = await this.fileModel.find({
+      familyId,
+      $or: [
+        { folder: normalizedPath },
+        { folder: { $regex: `^${normalizedPath}/` } },
+      ],
+    }).select('path').exec();
+    
+    const deletedFilePaths = filesToDelete.map(f => f.path).filter(p => p);
     
     // 删除该文件夹及所有子文件夹下的文件
     const result = await this.fileModel.deleteMany({
@@ -162,7 +173,7 @@ export class FilesService {
       ],
     });
     
-    return { deletedCount: result.deletedCount };
+    return { deletedCount: result.deletedCount, deletedFilePaths };
   }
 
   // 重命名文件夹

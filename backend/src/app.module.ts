@@ -23,6 +23,7 @@ import { HealthModule } from './health/health.module';
 import { WikiModule } from './wiki/wiki.module';
 import { PasswordsModule } from './passwords/passwords.module';
 import { GrowthModule } from './growth/growth.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -31,6 +32,8 @@ import { GrowthModule } from './growth/growth.module';
       isGlobal: true, // 全局可用
       envFilePath: '.env',
     }),
+    // MinIO 对象存储模块（全局）
+    StorageModule,
     // MongoDB 数据库连接
     MongooseModule.forRootAsync({
       imports: [ConfigModule],

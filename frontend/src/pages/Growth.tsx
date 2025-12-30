@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/services/api';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Growth.css';
 
 const Growth = () => {
   const { user } = useAuthStore();
   const [records, setRecords] = useState<any[]>([]);
   const [familyMembers, setFamilyMembers] = useState<any[]>([]);
+  const { toast, hideToast, error } = useToast();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     childId: '',
@@ -64,8 +67,8 @@ const Growth = () => {
         notes: '',
       });
       loadRecords();
-    } catch (error: any) {
-      alert(error.response?.data?.message || '创建失败');
+    } catch (err: any) {
+      error(err.response?.data?.message || '创建失败');
     }
   };
 
@@ -81,6 +84,7 @@ const Growth = () => {
 
   return (
     <div className="growth-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1 className="page-title">👶 成长记录</h1>

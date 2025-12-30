@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import api from '@/services/api';
 import FileUploader from '@/components/FileUploader';
 import Loading from '@/components/Loading';
+import useConfirm from '@/hooks/useConfirm';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Files.css';
 
 interface FileItem {
@@ -17,6 +20,8 @@ const Files = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const { confirm, ConfirmDialogComponent } = useConfirm();
+  const { toast, hideToast, error } = useToast();
 
   useEffect(() => {
     fetchFiles();
@@ -45,23 +50,31 @@ const Files = () => {
         },
       });
       fetchFiles();
-    } catch (error: any) {
-      console.error('上传文件失败:', error);
-      alert(error.response?.data?.message || '上传文件失败，请重试');
+    } catch (err: any) {
+      console.error('上传文件失败:', err);
+      error(err.response?.data?.message || '上传文件失败，请重试');
     } finally {
       setUploading(false);
     }
   };
 
   const handleDeleteFile = async (fileId: string) => {
-    if (!confirm('确定要删除这个文件吗？')) return;
+    const confirmed = await confirm({
+      title: '删除文件',
+      message: '确定要删除这个文件吗？删除后无法恢复。',
+      confirmText: '删除',
+      cancelText: '取消',
+      type: 'danger',
+    });
+    
+    if (!confirmed) return;
 
     try {
       await api.delete(`/files/${fileId}`);
       fetchFiles();
-    } catch (error) {
-      console.error('删除文件失败:', error);
-      alert('删除文件失败，请重试');
+    } catch (err) {
+      console.error('删除文件失败:', err);
+      error('删除文件失败，请重试');
     }
   };
 
@@ -107,6 +120,7 @@ const Files = () => {
 
   return (
     <div className="files-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1>文件管理</h1>
@@ -227,6 +241,7 @@ const Files = () => {
           </div>
         )}
       </div>
+      {ConfirmDialogComponent}
     </div>
   );
 };

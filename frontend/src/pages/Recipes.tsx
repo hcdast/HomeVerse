@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Recipes.css';
 
 const Recipes = () => {
   const [recipes, setRecipes] = useState<any[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { toast, hideToast, error, warning } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -36,12 +39,12 @@ const Recipes = () => {
     
     // 验证必填字段
     if (!formData.name || !formData.name.trim()) {
-      alert('请填写菜名');
+      warning('请填写菜名');
       return;
     }
     
     if (!formData.cookingTime) {
-      alert('请填写烹饪时间');
+      warning('请填写烹饪时间');
       return;
     }
 
@@ -67,10 +70,10 @@ const Recipes = () => {
       
       await loadRecipes();
       console.log('食谱列表已刷新');
-    } catch (error: any) {
-      console.error('创建失败:', error);
-      console.error('错误详情:', error.response?.data);
-      alert(error.response?.data?.message || '创建失败');
+    } catch (err: any) {
+      console.error('创建失败:', err);
+      console.error('错误详情:', err.response?.data);
+      error(err.response?.data?.message || '创建失败');
     }
   };
 
@@ -95,6 +98,7 @@ const Recipes = () => {
 
   return (
     <div className="recipes-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1 className="page-title">🍳 家庭食谱</h1>

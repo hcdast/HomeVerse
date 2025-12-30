@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Wiki.css';
 
 const Wiki = () => {
   const [pages, setPages] = useState<any[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { toast, hideToast, error } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -41,8 +44,8 @@ const Wiki = () => {
         tags: '',
       });
       loadPages();
-    } catch (error: any) {
-      alert(error.response?.data?.message || '创建失败');
+    } catch (err: any) {
+      error(err.response?.data?.message || '创建失败');
     }
   };
 
@@ -58,6 +61,7 @@ const Wiki = () => {
 
   return (
     <div className="wiki-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1 className="page-title">📚 家庭知识库</h1>

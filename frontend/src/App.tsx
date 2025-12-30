@@ -14,6 +14,7 @@ const Articles = lazy(() => import('./pages/Articles'));
 const Profile = lazy(() => import('./pages/Profile'));
 const AiSettings = lazy(() => import('./pages/AiSettings'));
 const FamilyMembers = lazy(() => import('./pages/FamilyMembers'));
+const AiTools = lazy(() => import('./pages/AiTools'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const Search = lazy(() => import('./pages/Search'));
 // 新增功能页面
@@ -56,6 +57,7 @@ function App() {
             <Route path="wiki" element={<Wiki />} />
             {/* 工具 */}
             <Route path="passwords" element={<Passwords />} />
+            <Route path="ai-tools" element={<AiTools />} />
             <Route path="ai-settings" element={<AiSettings />} />
             {/* 设置 */}
             <Route path="family-members" element={<FamilyMembers />} />

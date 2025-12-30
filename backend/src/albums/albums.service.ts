@@ -49,8 +49,8 @@ export class AlbumsService {
     return album.save();
   }
 
-  // 从相册删除照片
-  async removePhoto(albumId: string, photoId: string): Promise<AlbumDocument> {
+  // 从相册删除照片（返回被删除的照片信息用于删除 MinIO 文件）
+  async removePhoto(albumId: string, photoId: string): Promise<{ album: AlbumDocument; deletedPhoto: any }> {
     const album = await this.albumModel.findById(albumId);
     if (!album) {
       throw new NotFoundException('相册不存在');
@@ -66,18 +66,6 @@ export class AlbumsService {
       throw new NotFoundException('照片不存在');
     }
     
-    // 删除物理文件
-    const fs = require('fs');
-    const filePath = `.${photoToDelete.path}`;
-    if (fs.existsSync(filePath)) {
-      try {
-        fs.unlinkSync(filePath);
-      } catch (error) {
-        console.error('删除照片文件失败:', error);
-        // 继续删除数据库记录，即使文件删除失败
-      }
-    }
-    
     // 从数组中移除照片
     album.photos = album.photos.filter((photo: any) => {
       const photoIdStr = photo._id ? photo._id.toString() : null;
@@ -91,7 +79,8 @@ export class AlbumsService {
       album.coverImage = '';
     }
     
-    return album.save();
+    const savedAlbum = await album.save();
+    return { album: savedAlbum, deletedPhoto: photoToDelete };
   }
 }
 

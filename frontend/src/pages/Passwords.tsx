@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Passwords.css';
 
 const Passwords = () => {
   const [passwords, setPasswords] = useState<any[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [revealedPassword, setRevealedPassword] = useState<{ id: string; password: string } | null>(null);
+  const { toast, hideToast, success, error } = useToast();
   const [formData, setFormData] = useState({
     serviceName: '',
     username: '',
@@ -41,8 +44,8 @@ const Passwords = () => {
         notes: '',
       });
       loadPasswords();
-    } catch (error: any) {
-      alert(error.response?.data?.message || '创建失败');
+    } catch (err: any) {
+      error(err.response?.data?.message || '创建失败');
     }
   };
 
@@ -56,14 +59,14 @@ const Passwords = () => {
           setRevealedPassword(null);
         }
       }, 5000);
-    } catch (error: any) {
-      alert(error.response?.data?.message || '查看失败');
+    } catch (err: any) {
+      error(err.response?.data?.message || '查看失败');
     }
   };
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('已复制到剪贴板');
+    success('已复制到剪贴板');
   };
 
   const handleDelete = async (id: string) => {
@@ -78,6 +81,7 @@ const Passwords = () => {
 
   return (
     <div className="passwords-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1 className="page-title">🔐 密码管理</h1>

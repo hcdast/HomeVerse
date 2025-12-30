@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
+import useConfirm from '@/hooks/useConfirm';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Calendar.css';
 
 interface CalendarDay {
@@ -18,6 +21,8 @@ const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarData, setCalendarData] = useState<any>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { confirm, ConfirmDialogComponent } = useConfirm();
+  const { toast, hideToast, error } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     type: 'event',
@@ -60,20 +65,26 @@ const Calendar = () => {
         location: '',
       });
       loadData();
-    } catch (error: any) {
-      alert(error.response?.data?.message || '创建失败');
+    } catch (err: any) {
+      error(err.response?.data?.message || '创建失败');
     }
   };
 
   const handleDeleteEvent = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('确定删除此事件？')) return;
+    const confirmed = await confirm({
+      title: '删除事件',
+      message: '确定要删除此日历事件吗？',
+      confirmText: '删除',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     
     try {
       await api.delete(`/calendar/${id}`);
       loadData();
-    } catch (error: any) {
-      alert(error.response?.data?.message || '删除失败');
+    } catch (err: any) {
+      error(err.response?.data?.message || '删除失败');
     }
   };
 
@@ -85,8 +96,8 @@ const Calendar = () => {
     try {
       await api.put(`/calendar/${id}/status`, { status: newStatus });
       loadData();
-    } catch (error: any) {
-      alert(error.response?.data?.message || '操作失败');
+    } catch (err: any) {
+      error(err.response?.data?.message || '操作失败');
     }
   };
 
@@ -94,6 +105,7 @@ const Calendar = () => {
 
   return (
     <div className="calendar-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1 className="page-title">📅 家庭日历</h1>
@@ -284,6 +296,7 @@ const Calendar = () => {
           </div>
         </div>
       )}
+      {ConfirmDialogComponent}
     </div>
   );
 };

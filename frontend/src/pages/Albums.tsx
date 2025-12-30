@@ -3,6 +3,9 @@ import api from '@/services/api';
 import FileUploader from '@/components/FileUploader';
 import ImagePreview from '@/components/ImagePreview';
 import Loading from '@/components/Loading';
+import useConfirm from '@/hooks/useConfirm';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Albums.css';
 
 interface Album {
@@ -14,6 +17,18 @@ interface Album {
   createdAt: string;
 }
 
+/**
+ * 获取图片URL
+ * 如果是完整URL（http/https开头）直接使用，否则加上 /api 前缀
+ */
+const getImageUrl = (path: string): string => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  return `/api${path}`;
+};
+
 const Albums = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +38,8 @@ const Albums = () => {
   const [showAlbumDetail, setShowAlbumDetail] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const { confirm, ConfirmDialogComponent } = useConfirm();
+  const { toast, hideToast, error } = useToast();
 
   useEffect(() => {
     fetchAlbums();
@@ -46,9 +63,9 @@ const Albums = () => {
       setShowCreateModal(false);
       setNewAlbum({ title: '', description: '' });
       fetchAlbums();
-    } catch (error) {
-      console.error('创建相册失败:', error);
-      alert('创建相册失败，请重试');
+    } catch (err) {
+      console.error('创建相册失败:', err);
+      error('创建相册失败，请重试');
     }
   };
 
@@ -69,9 +86,9 @@ const Albums = () => {
       const response = await api.get(`/albums/${selectedAlbum._id}`);
       setSelectedAlbum(response.data);
       fetchAlbums(); // 更新列表
-    } catch (error) {
-      console.error('上传照片失败:', error);
-      alert('上传照片失败，请重试');
+    } catch (err) {
+      console.error('上传照片失败:', err);
+      error('上传照片失败，请重试');
     } finally {
       setUploadingPhoto(false);
     }
@@ -88,7 +105,15 @@ const Albums = () => {
   };
 
   const handleDeletePhoto = async (albumId: string, photoId: string) => {
-    if (!confirm('确定要删除这张照片吗？')) return;
+    const confirmed = await confirm({
+      title: '删除照片',
+      message: '确定要删除这张照片吗？删除后无法恢复。',
+      confirmText: '删除',
+      cancelText: '取消',
+      type: 'danger',
+    });
+    
+    if (!confirmed) return;
 
     try {
       await api.delete(`/albums/${albumId}/photos/${photoId}`);
@@ -97,9 +122,9 @@ const Albums = () => {
         setSelectedAlbum(response.data);
       }
       fetchAlbums();
-    } catch (error) {
-      console.error('删除照片失败:', error);
-      alert('删除照片失败，请重试');
+    } catch (err) {
+      console.error('删除照片失败:', err);
+      error('删除照片失败，请重试');
     }
   };
 
@@ -109,6 +134,7 @@ const Albums = () => {
 
   return (
     <div className="albums-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1>相册管理</h1>
@@ -162,7 +188,7 @@ const Albums = () => {
             >
               <div className="album-cover">
                 {album.coverImage ? (
-                  <img src={`/api${album.coverImage}`} alt={album.title} />
+                  <img src={getImageUrl(album.coverImage)} alt={album.title} />
                 ) : (
                   <div className="album-placeholder">📷</div>
                 )}
@@ -215,9 +241,9 @@ const Albums = () => {
                 selectedAlbum.photos.map((photo: any) => (
                   <div key={photo._id} className="photo-item">
                     <img
-                      src={`/api${photo.path}`}
+                      src={getImageUrl(photo.path)}
                       alt={photo.originalName}
-                      onClick={() => setPreviewImage(`/api${photo.path}`)}
+                      onClick={() => setPreviewImage(getImageUrl(photo.path))}
                     />
                     <div className="photo-actions">
                       <button
@@ -244,6 +270,7 @@ const Albums = () => {
       {previewImage && (
         <ImagePreview imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
       )}
+      {ConfirmDialogComponent}
     </div>
   );
 };

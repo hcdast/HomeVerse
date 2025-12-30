@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import api from '@/services/api';
 import FileUploader from '@/components/FileUploader';
 import Loading from '@/components/Loading';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Files.css';
 
 interface FileItem {
@@ -34,6 +36,7 @@ const FilesNew = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const { toast, hideToast, error } = useToast();
   // const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -94,9 +97,9 @@ const FilesNew = () => {
       setShowNewFolderDialog(false);
       setNewFolderName('');
       loadFolderContents(folderContents.currentPath);
-    } catch (error: any) {
-      console.error('创建文件夹失败:', error);
-      alert(error.response?.data?.message || '创建文件夹失败');
+    } catch (err: any) {
+      console.error('创建文件夹失败:', err);
+      error(err.response?.data?.message || '创建文件夹失败');
     }
   };
 
@@ -114,9 +117,9 @@ const FilesNew = () => {
         },
       });
       loadFolderContents(folderContents.currentPath);
-    } catch (error: any) {
-      console.error('上传文件失败:', error);
-      alert(error.response?.data?.message || '上传文件失败');
+    } catch (err: any) {
+      console.error('上传文件失败:', err);
+      error(err.response?.data?.message || '上传文件失败');
     } finally {
       setUploading(false);
     }
@@ -138,9 +141,9 @@ const FilesNew = () => {
     try {
       await api.delete(`/files/${fileId}`);
       loadFolderContents(folderContents.currentPath);
-    } catch (error) {
-      console.error('删除文件失败:', error);
-      alert('删除文件失败');
+    } catch (err) {
+      console.error('删除文件失败:', err);
+      error('删除文件失败');
     }
   };
 
@@ -155,9 +158,9 @@ const FilesNew = () => {
         params: { path: folderPath },
       });
       loadFolderContents(folderContents.currentPath);
-    } catch (error) {
-      console.error('删除文件夹失败:', error);
-      alert('删除文件夹失败');
+    } catch (err) {
+      console.error('删除文件夹失败:', err);
+      error('删除文件夹失败');
     }
   };
 
@@ -199,6 +202,7 @@ const FilesNew = () => {
 
   return (
     <div className="files-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="files-header">
         <h1>文件管理</h1>
         <div className="header-actions">

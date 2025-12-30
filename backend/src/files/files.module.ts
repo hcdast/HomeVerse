@@ -4,11 +4,13 @@ import { FilesService } from './files.service';
 import { FilesController } from './files.controller';
 import { File, FileSchema } from './schemas/file.schema';
 import { UsersModule } from '../users/users.module';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: File.name, schema: FileSchema }]),
     UsersModule,
+    StorageModule,
   ],
   controllers: [FilesController],
   providers: [FilesService],

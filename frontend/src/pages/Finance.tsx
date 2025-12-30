@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Finance.css';
 
 const Finance = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [statistics, setStatistics] = useState({ income: 0, expense: 0, balance: 0 });
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { toast, hideToast, error, warning } = useToast();
   const [formData, setFormData] = useState({
     type: 'expense',
     amount: '',
@@ -56,7 +59,7 @@ const Finance = () => {
   const handleCreate = async () => {
     // 验证必填字段
     if (!formData.amount || !formData.category || !formData.description) {
-      alert('请填写完整信息');
+      warning('请填写完整信息');
       return;
     }
 
@@ -84,9 +87,9 @@ const Finance = () => {
       await loadData();
       
       console.log('数据已刷新');
-    } catch (error: any) {
-      console.error('创建失败:', error);
-      alert(error.response?.data?.message || '创建失败');
+    } catch (err: any) {
+      console.error('创建失败:', err);
+      error(err.response?.data?.message || '创建失败');
     }
   };
 
@@ -107,6 +110,7 @@ const Finance = () => {
 
   return (
     <div className="finance-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1 className="page-title">💰 财务记账</h1>

@@ -31,6 +31,7 @@ const Sidebar = () => {
     
     // 工具
     { path: '/passwords', label: '密码管理', icon: '🔐', category: '工具' },
+    { path: '/ai-tools', label: 'AI创作工具', icon: '✨', category: '工具' },
     { path: '/ai-settings', label: 'AI助手', icon: '🤖', category: '工具' },
     
     // 设置

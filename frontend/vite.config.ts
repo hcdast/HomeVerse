@@ -10,10 +10,11 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 3000, // 前端端口 3000（确保使用此端口）
+    strictPort: true, // 强制使用 3000，如果被占用则报错
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:3001', // 后端端口 3001
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
         // 支持文件上传

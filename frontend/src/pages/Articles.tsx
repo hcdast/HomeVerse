@@ -4,6 +4,9 @@ import Loading from '@/components/Loading';
 import RichTextEditor from '@/components/RichTextEditor';
 import AiProviderSelector from '@/components/AiProviderSelector';
 import aiService, { AiProviderType } from '@/services/aiService';
+import useConfirm from '@/hooks/useConfirm';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Articles.css';
 
 interface Article {
@@ -24,6 +27,8 @@ const Articles = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const { confirm, ConfirmDialogComponent } = useConfirm();
+  const { toast, hideToast, error, warning } = useToast();
   const [newArticle, setNewArticle] = useState({
     title: '',
     content: '',
@@ -58,9 +63,9 @@ const Articles = () => {
       setShowCreateModal(false);
       setNewArticle({ title: '', content: '', excerpt: '', status: 'draft' });
       fetchArticles();
-    } catch (error) {
-      console.error('创建文章失败:', error);
-      alert('创建文章失败，请重试');
+    } catch (err) {
+      console.error('创建文章失败:', err);
+      error('创建文章失败，请重试');
     }
   };
 
@@ -85,28 +90,34 @@ const Articles = () => {
       setEditingArticle(null);
       setNewArticle({ title: '', content: '', excerpt: '', status: 'draft' });
       fetchArticles();
-    } catch (error) {
-      console.error('更新文章失败:', error);
-      alert('更新文章失败，请重试');
+    } catch (err) {
+      console.error('更新文章失败:', err);
+      error('更新文章失败，请重试');
     }
   };
 
   const handleDeleteArticle = async (id: string) => {
-    if (!confirm('确定要删除这篇文章吗？')) return;
+    const confirmed = await confirm({
+      title: '删除文章',
+      message: '确定要删除这篇文章吗？删除后无法恢复。',
+      confirmText: '删除',
+      type: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       await api.delete(`/articles/${id}`);
       fetchArticles();
-    } catch (error) {
-      console.error('删除文章失败:', error);
-      alert('删除文章失败，请重试');
+    } catch (err) {
+      console.error('删除文章失败:', err);
+      error('删除文章失败，请重试');
     }
   };
 
   // AI 生成文章内容
   const handleAiGenerateContent = async () => {
     if (!aiPrompt.trim()) {
-      alert('请输入生成提示词');
+      warning('请输入生成提示词');
       return;
     }
 
@@ -123,9 +134,9 @@ const Articles = () => {
       });
       setAiPrompt('');
       setShowAiPanel(false);
-    } catch (error: any) {
-      console.error('AI 生成失败:', error);
-      alert(error.response?.data?.message || 'AI 生成失败，请检查配置');
+    } catch (err: any) {
+      console.error('AI 生成失败:', err);
+      error(err.response?.data?.message || 'AI 生成失败，请检查配置');
     } finally {
       setAiLoading(false);
     }
@@ -134,7 +145,7 @@ const Articles = () => {
   // AI 生成标题
   const handleAiGenerateTitle = async () => {
     if (!newArticle.content.trim()) {
-      alert('请先输入文章内容');
+      warning('请先输入文章内容');
       return;
     }
 
@@ -146,9 +157,9 @@ const Articles = () => {
         ...newArticle,
         title: title,
       });
-    } catch (error: any) {
-      console.error('AI 生成标题失败:', error);
-      alert(error.response?.data?.message || 'AI 生成标题失败');
+    } catch (err: any) {
+      console.error('AI 生成标题失败:', err);
+      error(err.response?.data?.message || 'AI 生成标题失败');
     } finally {
       setAiLoading(false);
     }
@@ -157,7 +168,7 @@ const Articles = () => {
   // AI 生成摘要
   const handleAiGenerateExcerpt = async () => {
     if (!newArticle.content.trim()) {
-      alert('请先输入文章内容');
+      warning('请先输入文章内容');
       return;
     }
 
@@ -168,9 +179,9 @@ const Articles = () => {
         ...newArticle,
         excerpt: excerpt,
       });
-    } catch (error: any) {
-      console.error('AI 生成摘要失败:', error);
-      alert(error.response?.data?.message || 'AI 生成摘要失败');
+    } catch (err: any) {
+      console.error('AI 生成摘要失败:', err);
+      error(err.response?.data?.message || 'AI 生成摘要失败');
     } finally {
       setAiLoading(false);
     }
@@ -179,7 +190,7 @@ const Articles = () => {
   // AI 优化内容
   const handleAiOptimizeContent = async () => {
     if (!newArticle.content.trim()) {
-      alert('请先输入文章内容');
+      warning('请先输入文章内容');
       return;
     }
 
@@ -190,9 +201,9 @@ const Articles = () => {
         ...newArticle,
         content: content,
       });
-    } catch (error: any) {
-      console.error('AI 优化失败:', error);
-      alert(error.response?.data?.message || 'AI 优化失败');
+    } catch (err: any) {
+      console.error('AI 优化失败:', err);
+      error(err.response?.data?.message || 'AI 优化失败');
     } finally {
       setAiLoading(false);
     }
@@ -204,6 +215,7 @@ const Articles = () => {
 
   return (
     <div className="articles-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1>文章管理</h1>
@@ -502,6 +514,7 @@ const Articles = () => {
           ))
         )}
       </div>
+      {ConfirmDialogComponent}
     </div>
   );
 };

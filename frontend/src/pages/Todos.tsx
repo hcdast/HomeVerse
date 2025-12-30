@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
+import useConfirm from '@/hooks/useConfirm';
+import { useToast } from '@/hooks/useToast';
+import Toast from '@/components/Toast';
 import './Todos.css';
 
 const Todos = () => {
   const [todos, setTodos] = useState<any[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { confirm, ConfirmDialogComponent } = useConfirm();
+  const { toast, hideToast, error } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -34,8 +39,8 @@ const Todos = () => {
       setShowCreateModal(false);
       setFormData({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '' });
       loadTodos();
-    } catch (error: any) {
-      alert(error.response?.data?.message || '创建失败');
+    } catch (err: any) {
+      error(err.response?.data?.message || '创建失败');
     }
   };
 
@@ -49,7 +54,13 @@ const Todos = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('确定删除此任务？')) return;
+    const confirmed = await confirm({
+      title: '删除任务',
+      message: '确定要删除此任务吗？',
+      confirmText: '删除',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await api.delete(`/todos/${id}`);
       loadTodos();
@@ -69,6 +80,7 @@ const Todos = () => {
 
   return (
     <div className="todos-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="page-header">
         <div>
           <h1 className="page-title">✅ 待办清单</h1>
@@ -190,6 +202,7 @@ const Todos = () => {
           </div>
         </div>
       )}
+      {ConfirmDialogComponent}
     </div>
   );
 };

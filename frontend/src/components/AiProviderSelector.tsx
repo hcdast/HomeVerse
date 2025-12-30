@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import aiService, { AiProviderType, AiProviderInfo } from '../services/aiService';
+import { useToast } from '../hooks/useToast';
+import Toast from './Toast';
 import './AiProviderSelector.css';
 
 interface AiProviderSelectorProps {
@@ -19,6 +21,7 @@ const AiProviderSelector: React.FC<AiProviderSelectorProps> = ({
   const [currentProvider, setCurrentProvider] = useState<AiProviderType | undefined>(value);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast, hideToast, success, warning, error: showError } = useToast();
 
   useEffect(() => {
     loadProviders();
@@ -54,7 +57,7 @@ const AiProviderSelector: React.FC<AiProviderSelectorProps> = ({
     const provider = providers.find(p => p.type === providerType);
     
     if (!provider?.configured) {
-      alert(`${provider?.name} 未配置，请先在后端设置相应的 API Key`);
+      warning(`${provider?.name} 未配置，请先在后端设置相应的 API Key`);
       return;
     }
 
@@ -66,13 +69,13 @@ const AiProviderSelector: React.FC<AiProviderSelectorProps> = ({
       // 如果没有提供 onChange，则直接切换全局提供商
       try {
         await aiService.setProvider(providerType);
-        alert('AI 提供商切换成功');
-      } catch (error: any) {
-        console.error('切换 AI 提供商失败:', error);
-        alert(error.response?.data?.message || '切换失败，请重试');
+        success('AI 提供商切换成功');
+      } catch (err: any) {
+        console.error('切换 AI 提供商失败:', err);
+        showError(err.response?.data?.message || '切换失败，请重试');
       }
     }
-  }, [providers, onChange]);
+  }, [providers, onChange, warning, success, showError]);
 
   const getProviderIcon = useCallback((type: AiProviderType): string => {
     const icons: Record<AiProviderType, string> = {
@@ -135,6 +138,7 @@ const AiProviderSelector: React.FC<AiProviderSelectorProps> = ({
 
   return (
     <div className="ai-provider-selector">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="ai-provider-grid">
         {filteredProviders.map((provider) => (
           <div
