@@ -9,6 +9,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['react-quill'],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/react-quill/, /node_modules/],
+    },
+  },
   server: {
     port: 3000, // 前端端口 3000（确保使用此端口）
     strictPort: true, // 强制使用 3000，如果被占用则报错
