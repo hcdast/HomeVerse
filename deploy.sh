@@ -136,11 +136,15 @@ fi
 
 cd $FRONTEND_DIR
 
+# 清理缓存和旧依赖
+echo "🧹 清理前端缓存..."
+rm -rf node_modules package-lock.json dist .vite
+
 # 安装依赖
 echo "📦 安装前端依赖..."
 npm install
 
-# 构建
+# 构建（使用本地安装的 vite）
 echo "🔨 构建前端..."
 npm run build
 
