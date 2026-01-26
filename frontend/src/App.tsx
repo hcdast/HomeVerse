@@ -26,6 +26,25 @@ const Health = lazy(() => import('./pages/Health'));
 const Wiki = lazy(() => import('./pages/Wiki'));
 const Passwords = lazy(() => import('./pages/Passwords'));
 const Growth = lazy(() => import('./pages/Growth'));
+// P0 新功能页面
+const Shopping = lazy(() => import('./pages/Shopping'));
+const Chores = lazy(() => import('./pages/Chores'));
+const Contacts = lazy(() => import('./pages/Contacts'));
+// P1 新功能页面
+const Moments = lazy(() => import('./pages/Moments'));
+const Budgets = lazy(() => import('./pages/Budgets'));
+const Anniversaries = lazy(() => import('./pages/Anniversaries'));
+// P2 新功能页面
+const Reminders = lazy(() => import('./pages/Reminders'));
+const Goals = lazy(() => import('./pages/Goals'));
+const Locations = lazy(() => import('./pages/Locations'));
+// P2/P3 扩展功能页面
+const Pets = lazy(() => import('./pages/Pets'));
+const Appliances = lazy(() => import('./pages/Appliances'));
+const Travels = lazy(() => import('./pages/Travels'));
+const Education = lazy(() => import('./pages/Education'));
+const FamilyTree = lazy(() => import('./pages/FamilyTree'));
+const Books = lazy(() => import('./pages/Books'));
 
 // 受保护的路由组件
 const ProtectedRoute = () => {
@@ -50,6 +69,25 @@ function App() {
             <Route path="recipes" element={<Recipes />} />
             <Route path="health" element={<Health />} />
             <Route path="growth" element={<Growth />} />
+            {/* P0 新功能 */}
+            <Route path="shopping" element={<Shopping />} />
+            <Route path="chores" element={<Chores />} />
+            <Route path="contacts" element={<Contacts />} />
+            {/* P1 新功能 */}
+            <Route path="moments" element={<Moments />} />
+            <Route path="budgets" element={<Budgets />} />
+            <Route path="anniversaries" element={<Anniversaries />} />
+            {/* P2 新功能 */}
+            <Route path="reminders" element={<Reminders />} />
+            <Route path="goals" element={<Goals />} />
+            <Route path="locations" element={<Locations />} />
+            {/* P2/P3 扩展功能 */}
+            <Route path="pets" element={<Pets />} />
+            <Route path="appliances" element={<Appliances />} />
+            <Route path="travels" element={<Travels />} />
+            <Route path="education" element={<Education />} />
+            <Route path="family-tree" element={<FamilyTree />} />
+            <Route path="books" element={<Books />} />
             {/* 资料库 */}
             <Route path="albums" element={<Albums />} />
             <Route path="files" element={<Files />} />

@@ -1,0 +1,84 @@
+.books-page { padding: 24px; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+.page-title { font-size: 28px; font-weight: 700; color: #1a1a2e; margin: 0 0 8px 0; }
+.page-subtitle { color: #666; margin: 0; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.btn-tab { padding: 8px 16px; background: #f5f5f5; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; }
+.btn-tab.active { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.btn-primary { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4); }
+
+.stats-row { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.stat-card { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.stat-icon { font-size: 28px; }
+.stat-info { display: flex; flex-direction: column; }
+.stat-value { font-size: 20px; font-weight: 700; color: #1a1a2e; }
+.stat-label { font-size: 12px; color: #888; }
+
+.filter-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-tabs button { padding: 8px 16px; background: #f5f5f5; border: none; border-radius: 8px; cursor: pointer; }
+.filter-tabs button.active { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-weight: 600; }
+
+.books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+.empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: white; border-radius: 16px; }
+.empty-icon { font-size: 64px; margin-bottom: 16px; }
+.empty-state p { color: #888; }
+
+.book-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s; }
+.book-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+.book-cover { height: 160px; background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); display: flex; align-items: center; justify-content: center; font-size: 48px; }
+.book-cover img { width: 100%; height: 100%; object-fit: cover; }
+.book-info { padding: 16px; }
+.book-info h3 { margin: 0 0 4px 0; font-size: 15px; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.book-info .author { margin: 0 0 8px 0; font-size: 13px; color: #666; }
+.book-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+.book-meta .status { font-weight: 500; }
+.book-meta .rating { font-size: 10px; }
+.progress-bar { height: 4px; background: #eee; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.progress-bar .progress { height: 100%; background: linear-gradient(90deg, #e67e22 0%, #f39c12 100%); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.modal-content { background: white; border-radius: 16px; padding: 24px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+.modal-content.modal-detail { max-width: 550px; padding: 0; }
+.modal-content h2 { margin: 0 0 20px 0; font-size: 20px; color: #1a1a2e; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; }
+.form-row { display: flex; gap: 16px; }
+.form-row .form-group { flex: 1; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+.form-group input:focus { outline: none; border-color: #e67e22; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.modal-actions button { padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; border: none; }
+.modal-actions button[type="button"] { background: #f5f5f5; color: #666; }
+.modal-actions button[type="submit"] { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); color: white; }
+
+.detail-header { display: flex; gap: 20px; padding: 24px; background: #f8f9fa; }
+.detail-cover { width: 100px; height: 140px; background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 36px; overflow: hidden; flex-shrink: 0; }
+.detail-cover img { width: 100%; height: 100%; object-fit: cover; }
+.detail-title { flex: 1; }
+.detail-title h2 { margin: 0 0 8px 0; font-size: 20px; color: #1a1a2e; }
+.detail-title .author { margin: 0 0 12px 0; color: #666; font-size: 14px; }
+.status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; color: white; font-size: 12px; }
+.detail-body { padding: 24px; }
+.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+.info-item { display: flex; flex-direction: column; gap: 4px; }
+.info-item label { font-size: 12px; color: #888; }
+.info-item span { font-size: 14px; color: #333; font-weight: 500; }
+.description, .review { margin-bottom: 16px; }
+.description h4, .review h4 { margin: 0 0 8px 0; font-size: 14px; color: #666; }
+.description p, .review p { margin: 0; font-size: 14px; color: #333; line-height: 1.6; }
+.action-buttons { display: flex; gap: 12px; margin-top: 16px; }
+.btn-action { padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.btn-action.reading { background: #e3f2fd; color: #1976d2; }
+.btn-action.finish { background: #e8f5e9; color: #388e3c; }
+
+.detail-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid #eee; }
+.detail-footer button { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; border: none; }
+.btn-delete { background: #ffebee; color: #e74c3c; }
+.btn-edit { background: #e3f2fd; color: #1976d2; }
+.detail-footer button:last-child { background: #f5f5f5; color: #666; }
+
+@media (max-width: 768px) { .books-page { padding: 16px; } .page-header { flex-direction: column; } .stats-row { flex-direction: column; } .books-grid { grid-template-columns: repeat(2, 1fr); } .info-grid { grid-template-columns: 1fr; } }
+
+
+

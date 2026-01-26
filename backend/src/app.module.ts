@@ -24,6 +24,22 @@ import { WikiModule } from './wiki/wiki.module';
 import { PasswordsModule } from './passwords/passwords.module';
 import { GrowthModule } from './growth/growth.module';
 import { StorageModule } from './storage/storage.module';
+import { ShoppingModule } from './shopping/shopping.module';
+import { ChoresModule } from './chores/chores.module';
+import { ContactsModule } from './contacts/contacts.module';
+import { MomentsModule } from './moments/moments.module';
+import { BudgetsModule } from './budgets/budgets.module';
+import { AnniversariesModule } from './anniversaries/anniversaries.module';
+import { RemindersModule } from './reminders/reminders.module';
+import { GoalsModule } from './goals/goals.module';
+import { LocationsModule } from './locations/locations.module';
+// P2/P3 扩展功能模块
+import { PetsModule } from './pets/pets.module';
+import { AppliancesModule } from './appliances/appliances.module';
+import { TravelsModule } from './travels/travels.module';
+import { EducationModule } from './education/education.module';
+import { FamilyTreeModule } from './family-tree/family-tree.module';
+import { BooksModule } from './books/books.module';
 
 @Module({
   imports: [
@@ -70,6 +86,25 @@ import { StorageModule } from './storage/storage.module';
     WikiModule,
     PasswordsModule,
     GrowthModule,
+    // P0 新功能模块
+    ShoppingModule,
+    ChoresModule,
+    ContactsModule,
+    // P1 新功能模块
+    MomentsModule,
+    BudgetsModule,
+    AnniversariesModule,
+    // P2 新功能模块
+    RemindersModule,
+    GoalsModule,
+    LocationsModule,
+    // P2/P3 扩展功能模块
+    PetsModule,
+    AppliancesModule,
+    TravelsModule,
+    EducationModule,
+    FamilyTreeModule,
+    BooksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

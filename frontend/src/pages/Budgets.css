@@ -1,0 +1,553 @@
+.budgets-page {
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.page-subtitle {
+  color: #666;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-secondary {
+  background: #f5f5f5;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #e8e8e8;
+}
+
+/* 月份选择器 */
+.month-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.month-selector button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.month-selector button:hover {
+  background: #667eea;
+  color: white;
+}
+
+.current-month {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+/* 警告 */
+.alerts-section {
+  margin-bottom: 20px;
+}
+
+.alert-item {
+  background: #fff3e0;
+  color: #e65100;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+/* 布局 */
+.budgets-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+}
+
+.budgets-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.budgets-sidebar {
+  position: sticky;
+  top: 24px;
+  height: fit-content;
+}
+
+/* 总览卡片 */
+.overview-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.overview-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.overview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.overview-card.spent {
+  border-left: 4px solid #e74c3c;
+}
+
+.overview-card.income {
+  border-left: 4px solid #27ae60;
+}
+
+.overview-card.balance {
+  border-left: 4px solid #3498db;
+}
+
+.card-icon {
+  font-size: 32px;
+}
+
+.card-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.card-label {
+  font-size: 13px;
+  color: #888;
+}
+
+/* 区块卡片 */
+.section-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.section-card h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  color: #1a1a2e;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  margin: 0;
+}
+
+.btn-add {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* 分类预算列表 */
+.categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.category-item {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.category-item:hover {
+  background: #f0f0f0;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.category-icon {
+  font-size: 24px;
+}
+
+.category-name {
+  font-weight: 600;
+  color: #1a1a2e;
+  flex: 1;
+}
+
+.category-amount {
+  font-size: 14px;
+  color: #666;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-fill.savings {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.category-percentage {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+/* 储蓄目标 */
+.empty-goals {
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+}
+
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.goal-item {
+  padding: 16px;
+  background: linear-gradient(to right, #f8f9ff, #f8f9fa);
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+}
+
+.goal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.goal-icon {
+  font-size: 24px;
+}
+
+.goal-name {
+  font-weight: 600;
+  color: #1a1a2e;
+  flex: 1;
+}
+
+.goal-deadline {
+  font-size: 12px;
+  color: #888;
+}
+
+.goal-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.goal-progress .progress-bar {
+  flex: 1;
+}
+
+.goal-amount {
+  font-size: 14px;
+  color: #667eea;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.goal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.goal-actions button {
+  padding: 6px 12px;
+  border: none;
+  background: #e8e8e8;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.goal-actions button:hover {
+  background: #d0d0d0;
+}
+
+.goal-actions button.delete {
+  color: #e74c3c;
+}
+
+.goal-actions button.delete:hover {
+  background: #fee;
+}
+
+/* 侧边栏 */
+.sidebar-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.sidebar-card h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #1a1a2e;
+}
+
+.sidebar-card h4 {
+  margin: 20px 0 12px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.yearly-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.summary-item.highlight {
+  background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+  margin: 0 -20px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+}
+
+.summary-item .label {
+  color: #666;
+}
+
+.summary-item .value {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.summary-item .value.expense {
+  color: #e74c3c;
+}
+
+.summary-item .value.income {
+  color: #27ae60;
+}
+
+/* 月度条形图 */
+.monthly-bars {
+  display: flex;
+  gap: 8px;
+  height: 100px;
+  align-items: flex-end;
+}
+
+.month-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.month-label {
+  font-size: 10px;
+  color: #888;
+  margin-top: 6px;
+}
+
+.bar-container {
+  width: 100%;
+  height: 80px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.bar-fill {
+  width: 100%;
+  border-radius: 4px;
+  transition: height 0.3s ease;
+}
+
+/* 模态框 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.modal-content.modal-small {
+  max-width: 360px;
+}
+
+.modal-content h2 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  color: #1a1a2e;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal-actions button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.modal-actions button[type="button"] {
+  background: #f5f5f5;
+  border: none;
+  color: #666;
+}
+
+.modal-actions button[type="submit"] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+  .budgets-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .budgets-sidebar {
+    position: static;
+  }
+
+  .overview-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .budgets-page {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .overview-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
