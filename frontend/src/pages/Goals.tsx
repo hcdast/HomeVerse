@@ -365,9 +365,11 @@ const Goals = () => {
     return statusOptions.find((s) => s.value === status) || statusOptions[0];
   };
 
-  const getPriorityInfo = (priority: string) => {
+  const _getPriorityInfo = (priority: string) => {
     return priorityOptions.find((p) => p.value === priority) || priorityOptions[1];
   };
+  // Note: _getPriorityInfo is available for future use
+  void _getPriorityInfo;
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('zh-CN', {

@@ -99,7 +99,7 @@ type SelectMode = 'none' | 'share' | 'safeZone';
 
 const Locations = () => {
   const [familyLocations, setFamilyLocations] = useState<LocationData[]>([]);
-  const [myLocation, setMyLocation] = useState<LocationData | null>(null);
+  const [, setMyLocation] = useState<LocationData | null>(null);
   const [safeZones, setSafeZones] = useState<SafeZone[]>([]);
   const [dailyRoutes, setDailyRoutes] = useState<DailyRouteData[]>([]);
   const [isSharing, setIsSharing] = useState(false);
@@ -133,7 +133,7 @@ const Locations = () => {
   
   const mapRef = useRef<BaiduMapRef>(null);
   const watchIdRef = useRef<number | null>(null);
-  const autoUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autoUpdateIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { confirm, ConfirmDialogComponent } = useConfirm();
   const { toast, hideToast, success, error } = useToast();
 
@@ -755,7 +755,7 @@ const Locations = () => {
           >
             {isSharing ? '🔵 位置分享中' : '⚪ 开启分享'}
           </button>
-          <button className="btn-refresh" onClick={getCurrentLocation}>
+          <button className="btn-refresh" onClick={() => getCurrentLocation()}>
             🔄 刷新
           </button>
           <button className="btn-settings" onClick={() => setShowSettingsModal(true)}>
@@ -870,7 +870,7 @@ const Locations = () => {
                   </span>
                 </>
               )}
-              {viewMode === 'routes' && dailyRoutes.map((route, i) => (
+              {viewMode === 'routes' && dailyRoutes.map((route) => (
                 <span key={route._id} className="legend-item">
                   <span className="legend-dot" style={{ background: route.color }} />
                   {typeof route.userId === 'object' ? route.userId.username : '用户'}

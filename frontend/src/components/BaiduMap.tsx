@@ -1,5 +1,5 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useState } from 'react';
-import { loadBaiduMapSDK, isBaiduMapLoaded, MapLoadStatus, getLoadStatus } from '../utils/mapLoader';
+import { loadBaiduMapSDK, isBaiduMapLoaded } from '../utils/mapLoader';
 import { BAIDU_MAP_CONFIG, MAP_DEFAULT_CONFIG } from '../config';
 
 // 声明百度地图全局类型
