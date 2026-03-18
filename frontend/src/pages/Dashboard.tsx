@@ -1,294 +1,300 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { usePermissions, Resource, Action } from '../hooks/usePermissions';
+import { useNotifications } from '../hooks/useWebSocket';
 import { RoleIcons, RoleDescriptions } from '../services/familyService';
+import {
+  FinanceTrendChart,
+  CategoryPieChart,
+  WeeklyActivityChart,
+  TodoProgressChart,
+  StorageChart,
+  RecentActivityList,
+} from '../components/Charts';
 import api from '../services/api';
 import './Dashboard.css';
 
-interface Stats {
-  albums: number;
-  files: number;
-  articles: number;
-  members: number;
+interface DashboardStats {
+  overview: {
+    totalAlbums: number;
+    totalFiles: number;
+    totalArticles: number;
+    totalMembers: number;
+    totalPhotos: number;
+    storageUsed: number;
+  };
+  finance: {
+    totalIncome: number;
+    totalExpense: number;
+    balance: number;
+    monthlyTrend: Array<{ month: string; income: number; expense: number }>;
+    categoryBreakdown: Array<{ category: string; amount: number; percentage: number }>;
+  };
+  activities: {
+    recentActivities: Array<{
+      type: string;
+      description: string;
+      timestamp: Date;
+      user: string;
+    }>;
+    weeklyActivityCount: number[];
+  };
+  todos: {
+    total: number;
+    completed: number;
+    pending: number;
+    overdue: number;
+    completionRate: number;
+  };
 }
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { hasPermission, userRole } = usePermissions();
-  const [stats, setStats] = useState<Stats>({ albums: 0, files: 0, articles: 0, members: 0 });
-  // const [loading, setLoading] = useState(true);
+  const { isConnected, requestNotificationPermission } = useNotifications();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadStats = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/statistics/dashboard');
+      setStats(response.data);
+    } catch (error) {
+      console.error('加载统计数据失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadStats();
-  }, []);
+    // 请求通知权限
+    requestNotificationPermission();
+  }, [loadStats, requestNotificationPermission]);
 
-  const loadStats = async () => {
-    try {
-      // 获取各模块的数据统计
-      const [albums, files, articles] = await Promise.all([
-        hasPermission(Resource.ALBUMS, Action.READ) ? api.get('/albums').catch(() => ({ data: [] })) : { data: [] },
-        hasPermission(Resource.FILES, Action.READ) ? api.get('/files').catch(() => ({ data: [] })) : { data: [] },
-        hasPermission(Resource.ARTICLES, Action.READ) ? api.get('/articles').catch(() => ({ data: [] })) : { data: [] },
-      ]);
+  const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 6) return '夜深了';
+    if (hour < 12) return '早上好';
+    if (hour < 14) return '中午好';
+    if (hour < 18) return '下午好';
+    return '晚上好';
+  };
 
-      let memberCount = 0;
-      if (user?.familyId && hasPermission(Resource.MEMBERS, Action.READ)) {
-        try {
-          const membersRes = await api.get(`/families/${user.familyId}/members`);
-          memberCount = membersRes.data.length;
-        } catch (err) {
-          console.error('获取成员数失败:', err);
-        }
-      }
-
-      setStats({
-        albums: albums.data.length || 0,
-        files: files.data.length || 0,
-        articles: articles.data.length || 0,
-        members: memberCount,
-      });
-    } catch (error) {
-      console.error('加载统计数据失败:', error);
-    }
+  const formatDate = () => {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long',
+    };
+    return now.toLocaleDateString('zh-CN', options);
   };
 
   const quickActions = [
-    // 核心功能
-    {
-      title: '家庭日历',
-      icon: '📅',
-      description: '管理重要日程和事件',
-      path: '/calendar',
-      permission: null,
-      category: '核心功能',
-    },
-    {
-      title: '待办清单',
-      icon: '✅',
-      description: '追踪家庭任务',
-      path: '/todos',
-      permission: null,
-      category: '核心功能',
-    },
-    {
-      title: '财务记账',
-      icon: '💰',
-      description: '管理收支，掌握财务',
-      path: '/finance',
-      permission: null,
-      category: '核心功能',
-    },
-    // 资料管理
-    {
-      title: '家庭相册',
-      icon: '📷',
-      description: '珍藏美好回忆',
-      path: '/albums',
-      permission: { resource: Resource.ALBUMS, action: Action.READ },
-      category: '资料管理',
-    },
-    {
-      title: '文件管理',
-      icon: '📁',
-      description: '安全存储文件',
-      path: '/files',
-      permission: { resource: Resource.FILES, action: Action.READ },
-      category: '资料管理',
-    },
-    {
-      title: '文章管理',
-      icon: '📝',
-      description: '记录生活点滴',
-      path: '/articles',
-      permission: { resource: Resource.ARTICLES, action: Action.READ },
-      category: '资料管理',
-    },
-    // 生活助手
-    {
-      title: '家庭食谱',
-      icon: '🍳',
-      description: '收藏美味佳肴',
-      path: '/recipes',
-      permission: null,
-      category: '生活助手',
-    },
-    {
-      title: '健康档案',
-      icon: '🏥',
-      description: '管理健康信息',
-      path: '/health',
-      permission: null,
-      category: '生活助手',
-    },
-    {
-      title: '成长记录',
-      icon: '👶',
-      description: '记录成长轨迹',
-      path: '/growth',
-      permission: null,
-      category: '生活助手',
-    },
-    // 工具
-    {
-      title: '知识库',
-      icon: '📚',
-      description: '整理家庭知识',
-      path: '/wiki',
-      permission: null,
-      category: '工具',
-    },
-    {
-      title: '密码管理',
-      icon: '🔐',
-      description: '安全存储密码',
-      path: '/passwords',
-      permission: null,
-      category: '工具',
-    },
-    {
-      title: 'AI 助手',
-      icon: '🤖',
-      description: 'AI 辅助创作',
-      path: '/ai-settings',
-      permission: null,
-      category: '工具',
-    },
+    { title: '家庭日历', icon: '📅', description: '查看日程', path: '/calendar', color: '#667eea' },
+    { title: '待办清单', icon: '✅', description: '管理任务', path: '/todos', color: '#10b981' },
+    { title: '财务记账', icon: '💰', description: '记录收支', path: '/finance', color: '#f59e0b' },
+    { title: '家庭相册', icon: '📷', description: '珍藏回忆', path: '/albums', color: '#ec4899' },
+    { title: '食谱库', icon: '🍳', description: '美食收藏', path: '/recipes', color: '#f97316' },
+    { title: 'AI 助手', icon: '🤖', description: 'AI 创作', path: '/ai-tools', color: '#8b5cf6' },
   ];
 
   return (
     <div className="dashboard-page">
-      <div className="welcome-section">
+      {/* 欢迎卡片 */}
+      <div className="welcome-card">
         <div className="welcome-content">
-          <h1>欢迎回来, {user?.username}! 👋</h1>
-          <div className="user-role-badge">
+          <div className="welcome-text">
+            <span className="greeting">{getTimeGreeting()}</span>
+            <h1 className="welcome-title">欢迎回来, {user?.username}! 👋</h1>
+            <p className="welcome-date">{formatDate()}</p>
+          </div>
+          <div className="welcome-badge">
             <span className="role-icon">{RoleIcons[userRole]}</span>
             <span className="role-text">{RoleDescriptions[userRole]}</span>
+            {isConnected && <span className="online-badge" title="实时连接中">●</span>}
           </div>
+        </div>
+        <div className="welcome-decoration">
+          <div className="decoration-circle c1" />
+          <div className="decoration-circle c2" />
+          <div className="decoration-circle c3" />
         </div>
       </div>
 
-      {/* 统计卡片 */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">📷</div>
-          <div className="stat-info">
-            <div className="stat-number">{stats.albums}</div>
-            <div className="stat-label">相册</div>
+      {/* 统计概览 */}
+      <section className="stats-section">
+        <h2 className="section-title">
+          <span className="title-icon">📊</span>
+          数据概览
+        </h2>
+        <div className="stats-grid">
+          <div className="stat-card" style={{ '--stat-color': '#667eea', animationDelay: '0.1s' } as any}>
+            <div className="stat-icon-wrapper" style={{ background: 'linear-gradient(135deg, #667eea22, #764ba222)' }}>
+              <span className="stat-icon">📷</span>
+            </div>
+            <div className="stat-info">
+              <div className="stat-number">{stats?.overview.totalAlbums || 0}</div>
+              <div className="stat-label">相册</div>
+            </div>
+            <div className="stat-trend">📷</div>
+          </div>
+
+          <div className="stat-card" style={{ '--stat-color': '#10b981', animationDelay: '0.2s' } as any}>
+            <div className="stat-icon-wrapper" style={{ background: 'linear-gradient(135deg, #10b98122, #059c6322)' }}>
+              <span className="stat-icon">📁</span>
+            </div>
+            <div className="stat-info">
+              <div className="stat-number" style={{ color: '#10b981' }}>{stats?.overview.totalFiles || 0}</div>
+              <div className="stat-label">文件</div>
+            </div>
+            <div className="stat-trend">📁</div>
+          </div>
+
+          <div className="stat-card" style={{ '--stat-color': '#f59e0b', animationDelay: '0.3s' } as any}>
+            <div className="stat-icon-wrapper" style={{ background: 'linear-gradient(135deg, #f59e0b22, #d9740022)' }}>
+              <span className="stat-icon">📝</span>
+            </div>
+            <div className="stat-info">
+              <div className="stat-number" style={{ color: '#f59e0b' }}>{stats?.overview.totalArticles || 0}</div>
+              <div className="stat-label">文章</div>
+            </div>
+            <div className="stat-trend">📝</div>
+          </div>
+
+          <div className="stat-card" style={{ '--stat-color': '#ec4899', animationDelay: '0.4s' } as any}>
+            <div className="stat-icon-wrapper" style={{ background: 'linear-gradient(135deg, #ec489922, #db277722)' }}>
+              <span className="stat-icon">👥</span>
+            </div>
+            <div className="stat-info">
+              <div className="stat-number" style={{ color: '#ec4899' }}>{stats?.overview.totalMembers || 0}</div>
+              <div className="stat-label">成员</div>
+            </div>
+            <div className="stat-trend">👥</div>
           </div>
         </div>
+      </section>
 
-        <div className="stat-card">
-          <div className="stat-icon">📁</div>
-          <div className="stat-info">
-            <div className="stat-number">{stats.files}</div>
-            <div className="stat-label">文件</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">📝</div>
-          <div className="stat-info">
-            <div className="stat-number">{stats.articles}</div>
-            <div className="stat-label">文章</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">👥</div>
-          <div className="stat-info">
-            <div className="stat-number">{stats.members}</div>
-            <div className="stat-label">成员</div>
-          </div>
-        </div>
-      </div>
-
-      {/* 功能模块 */}
-      <div className="modules-section">
-        <h2>功能模块</h2>
-        
-        {/* 按分类显示 */}
-        {['核心功能', '资料管理', '生活助手', '工具'].map(category => {
-          const categoryActions = quickActions.filter(action => action.category === category);
-          if (categoryActions.length === 0) return null;
-          
-          return (
-            <div key={category} className="module-category">
-              <h3 className="category-name">{category}</h3>
-              <div className="quick-actions-grid">
-                {categoryActions.map((action) => {
-                  // 检查权限
-                  const hasAccess = !action.permission || 
-                    hasPermission(action.permission.resource, action.permission.action);
-                  
-                  if (!hasAccess) return null;
-
-                  return (
-                    <div
-                      key={action.path}
-                      className="quick-action-card"
-                      onClick={() => navigate(action.path)}
-                    >
-                      <div className="action-icon">{action.icon}</div>
-                      <div className="action-content">
-                        <h3>{action.title}</h3>
-                        <p>{action.description}</p>
-                      </div>
-                    </div>
-                  );
-                })}
+      {/* 快捷操作 */}
+      <section className="quick-section">
+        <h2 className="section-title">
+          <span className="title-icon">⚡</span>
+          快捷入口
+        </h2>
+        <div className="quick-actions-grid">
+          {quickActions.map((action, index) => (
+            <div
+              key={action.path}
+              className="quick-action-card"
+              onClick={() => navigate(action.path)}
+              style={{ '--action-color': action.color, animationDelay: `${0.1 * index}s` } as any}
+            >
+              <div className="action-icon-wrapper">
+                <span className="action-icon">{action.icon}</span>
               </div>
+              <div className="action-content">
+                <h4>{action.title}</h4>
+                <p>{action.description}</p>
+              </div>
+              <span className="action-arrow">→</span>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      </section>
 
-      {/* 权限说明 */}
-      <div className="permissions-info">
-        <h3>您当前的权限</h3>
-        <div className="permissions-grid">
-          <div className="permission-item">
-            <span className="permission-icon">📷</span>
-            <span>相册</span>
-            <div className="permission-badges">
-              {hasPermission(Resource.ALBUMS, Action.READ) && <span className="badge badge-read">读取</span>}
-              {hasPermission(Resource.ALBUMS, Action.WRITE) && <span className="badge badge-write">写入</span>}
-              {hasPermission(Resource.ALBUMS, Action.DELETE) && <span className="badge badge-delete">删除</span>}
-            </div>
+      {/* 图表区域 */}
+      <section className="charts-section">
+        <h2 className="section-title">
+          <span className="title-icon">📈</span>
+          数据分析
+        </h2>
+        
+        <div className="charts-grid">
+          {/* 财务趋势 */}
+          <div className="chart-wrapper chart-large">
+            <FinanceTrendChart
+              data={stats?.finance.monthlyTrend || []}
+              title="📈 收支趋势"
+              height={280}
+            />
           </div>
 
-          <div className="permission-item">
-            <span className="permission-icon">📁</span>
-            <span>文件</span>
-            <div className="permission-badges">
-              {hasPermission(Resource.FILES, Action.READ) && <span className="badge badge-read">读取</span>}
-              {hasPermission(Resource.FILES, Action.WRITE) && <span className="badge badge-write">写入</span>}
-              {hasPermission(Resource.FILES, Action.DELETE) && <span className="badge badge-delete">删除</span>}
-            </div>
+          {/* 支出分类 */}
+          <div className="chart-wrapper">
+            <CategoryPieChart
+              data={stats?.finance.categoryBreakdown || []}
+              title="📊 支出分类"
+              height={280}
+            />
           </div>
 
-          <div className="permission-item">
-            <span className="permission-icon">📝</span>
-            <span>文章</span>
-            <div className="permission-badges">
-              {hasPermission(Resource.ARTICLES, Action.READ) && <span className="badge badge-read">读取</span>}
-              {hasPermission(Resource.ARTICLES, Action.WRITE) && <span className="badge badge-write">写入</span>}
-              {hasPermission(Resource.ARTICLES, Action.DELETE) && <span className="badge badge-delete">删除</span>}
-            </div>
+          {/* 待办进度 */}
+          <div className="chart-wrapper">
+            <TodoProgressChart
+              total={stats?.todos.total || 0}
+              completed={stats?.todos.completed || 0}
+              pending={stats?.todos.pending || 0}
+              overdue={stats?.todos.overdue || 0}
+              completionRate={stats?.todos.completionRate || 0}
+            />
           </div>
 
-          <div className="permission-item">
-            <span className="permission-icon">👥</span>
-            <span>成员</span>
-            <div className="permission-badges">
-              {hasPermission(Resource.MEMBERS, Action.READ) && <span className="badge badge-read">读取</span>}
-              {hasPermission(Resource.MEMBERS, Action.WRITE) && <span className="badge badge-write">写入</span>}
-              {hasPermission(Resource.MEMBERS, Action.DELETE) && <span className="badge badge-delete">删除</span>}
+          {/* 周活动统计 */}
+          <div className="chart-wrapper">
+            <WeeklyActivityChart
+              data={stats?.activities.weeklyActivityCount || [0, 0, 0, 0, 0, 0, 0]}
+              title="📅 本周活跃度"
+              height={200}
+            />
+          </div>
+
+          {/* 存储空间 */}
+          <div className="chart-wrapper">
+            <StorageChart used={stats?.overview.storageUsed || 0} />
+          </div>
+
+          {/* 最近活动 */}
+          <div className="chart-wrapper">
+            <RecentActivityList activities={stats?.activities.recentActivities || []} />
+          </div>
+        </div>
+      </section>
+
+      {/* 财务摘要 */}
+      <section className="finance-summary">
+        <h2 className="section-title">
+          <span className="title-icon">💰</span>
+          财务概况
+        </h2>
+        <div className="finance-cards">
+          <div className="finance-card income">
+            <div className="finance-icon">📈</div>
+            <div className="finance-info">
+              <span className="finance-label">总收入</span>
+              <span className="finance-value">¥{(stats?.finance.totalIncome || 0).toLocaleString()}</span>
+            </div>
+          </div>
+          <div className="finance-card expense">
+            <div className="finance-icon">📉</div>
+            <div className="finance-info">
+              <span className="finance-label">总支出</span>
+              <span className="finance-value">¥{(stats?.finance.totalExpense || 0).toLocaleString()}</span>
+            </div>
+          </div>
+          <div className="finance-card balance">
+            <div className="finance-icon">💎</div>
+            <div className="finance-info">
+              <span className="finance-label">结余</span>
+              <span className="finance-value">¥{(stats?.finance.balance || 0).toLocaleString()}</span>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

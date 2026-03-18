@@ -137,7 +137,14 @@ export class AuthService {
     }
 
     // 生成JWT token
-    const payload = { email: user.email, sub: user._id };
+    const payload = { 
+      email: user.email, 
+      sub: user._id,
+      role: user.role,
+      familyId: familyId,
+      username: user.username,  // 添加用户名用于聊天显示
+      avatar: user.avatar,      // 添加头像用于聊天显示
+    };
     const access_token = this.jwtService.sign(payload);
 
     return {
@@ -148,6 +155,7 @@ export class AuthService {
         userId: user._id,
         username: user.username,
         email: user.email,
+        avatar: user.avatar,
         role: user.role,
         familyId: familyId,
         permissions: user.permissions || {},
@@ -173,6 +181,8 @@ export class AuthService {
       sub: user._id,
       role: user.role,
       familyId: user.familyId,
+      username: user.username,  // 添加用户名用于聊天显示
+      avatar: user.avatar,      // 添加头像用于聊天显示
     };
     return {
       access_token: this.jwtService.sign(payload),
@@ -182,6 +192,7 @@ export class AuthService {
         userId: user._id,
         username: user.username,
         email: user.email,
+        avatar: user.avatar,
         role: user.role,
         familyId: user.familyId,
         permissions: user.permissions || {},

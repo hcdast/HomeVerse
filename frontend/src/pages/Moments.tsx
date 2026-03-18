@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
 import useConfirm from '@/hooks/useConfirm';
 import { useToast } from '@/hooks/useToast';
 import Toast from '@/components/Toast';
+import BaiduMap, { BaiduMapRef, SelectedLocation } from '@/components/BaiduMap';
+import { MAP_DEFAULT_CONFIG } from '@/config';
 import './Moments.css';
 
 interface User {
@@ -66,6 +68,13 @@ const Moments = () => {
     images: [] as string[],
     location: '',
   });
+
+  // 位置选择相关状态
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(MAP_DEFAULT_CONFIG.center as [number, number]);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const mapRef = useRef<BaiduMapRef>(null);
 
   useEffect(() => {
     loadData();
@@ -150,6 +159,68 @@ const Moments = () => {
     } catch (err: any) {
       error(err.response?.data?.message || '删除失败');
     }
+  };
+
+  // 处理位置选择
+  const handleLocationSelect = (location: SelectedLocation) => {
+    setSelectedLocation(location);
+  };
+
+  // 确认选择位置
+  const confirmLocation = () => {
+    if (selectedLocation?.address) {
+      setFormData({ ...formData, location: selectedLocation.address });
+    } else if (selectedLocation) {
+      setFormData({ ...formData, location: `${selectedLocation.latitude.toFixed(6)}, ${selectedLocation.longitude.toFixed(6)}` });
+    }
+    setShowLocationPicker(false);
+  };
+
+  // 获取当前位置
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      error('您的浏览器不支持定位功能');
+      return;
+    }
+
+    setIsLoadingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setMapCenter([latitude, longitude]);
+        
+        // 使用百度地图逆地理编码获取地址
+        if (window.BMap) {
+          const geoc = new window.BMap.Geocoder();
+          const point = new window.BMap.Point(longitude, latitude);
+          geoc.getLocation(point, (result: any) => {
+            if (result) {
+              const address = result.address || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+              setSelectedLocation({ latitude, longitude, address });
+              if (mapRef.current) {
+                mapRef.current.panTo(latitude, longitude);
+              }
+            }
+            setIsLoadingLocation(false);
+          });
+        } else {
+          setSelectedLocation({ latitude, longitude });
+          setIsLoadingLocation(false);
+        }
+      },
+      (err) => {
+        console.error('获取位置失败:', err);
+        error('获取位置失败，请手动选择');
+        setIsLoadingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  // 清除位置
+  const clearLocation = () => {
+    setFormData({ ...formData, location: '' });
+    setSelectedLocation(null);
   };
 
   const formatTime = (dateStr: string) => {
@@ -383,12 +454,23 @@ const Moments = () => {
             </div>
             <div className="form-group">
               <label>位置（可选）</label>
-              <input
-                type="text"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="添加位置"
-              />
+              <div className="location-input-wrapper">
+                {formData.location ? (
+                  <div className="selected-location-display">
+                    <span className="location-icon">📍</span>
+                    <span className="location-text">{formData.location}</span>
+                    <button type="button" className="clear-location-btn" onClick={clearLocation}>×</button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="location-picker-btn"
+                    onClick={() => setShowLocationPicker(true)}
+                  >
+                    📍 选择位置
+                  </button>
+                )}
+              </div>
             </div>
             <div className="modal-actions">
               <button type="button" onClick={() => setShowCreateModal(false)}>
@@ -403,6 +485,62 @@ const Moments = () => {
       )}
 
       {ConfirmDialogComponent}
+
+      {/* 位置选择器弹窗 */}
+      {showLocationPicker && (
+        <div className="modal-overlay" onClick={() => setShowLocationPicker(false)}>
+          <div className="modal-content location-picker-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>📍 选择位置</h2>
+            
+            <div className="location-picker-actions">
+              <button 
+                type="button" 
+                className="get-current-btn"
+                onClick={getCurrentLocation}
+                disabled={isLoadingLocation}
+              >
+                {isLoadingLocation ? '⏳ 定位中...' : '🎯 获取当前位置'}
+              </button>
+            </div>
+
+            <div className="location-picker-map">
+              <BaiduMap
+                ref={mapRef}
+                center={mapCenter}
+                zoom={15}
+                selectMode={true}
+                selectedLocation={selectedLocation}
+                onLocationSelect={handleLocationSelect}
+                style={{ width: '100%', height: '300px', borderRadius: '8px' }}
+              />
+            </div>
+
+            {selectedLocation && (
+              <div className="selected-location-info">
+                <div className="location-address">
+                  <span className="label">已选位置：</span>
+                  <span className="value">{selectedLocation.address || `${selectedLocation.latitude.toFixed(6)}, ${selectedLocation.longitude.toFixed(6)}`}</span>
+                </div>
+              </div>
+            )}
+
+            <p className="location-picker-tip">💡 点击地图选择位置，或点击获取当前位置</p>
+
+            <div className="modal-actions">
+              <button type="button" onClick={() => setShowLocationPicker(false)}>
+                取消
+              </button>
+              <button 
+                type="submit" 
+                onClick={confirmLocation}
+                disabled={!selectedLocation}
+              >
+                确认选择
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,9 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as express from 'express';
 
 async function bootstrap() {
   // 确保上传目录存在
@@ -13,7 +14,7 @@ async function bootstrap() {
     path.join(process.cwd(), 'uploads', 'photos'),
     path.join(process.cwd(), 'uploads', 'files'),
   ];
-  
+
   uploadDirs.forEach((dir) => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -22,7 +23,11 @@ async function bootstrap() {
   });
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
+
+  // 请求体大小限制（防 DoS）：JSON 与 urlencoded 最大 10MB
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
   // 启用全局验证管道
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true, // 自动过滤未定义的属性
@@ -45,12 +50,15 @@ async function bootstrap() {
     },
   }));
 
-  // 启用全局异常过滤器（统一错误响应格式）
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // 启用全局异常过滤器（兜底捕获所有异常，响应中不暴露 stack）
+  app.useGlobalFilters(new AllExceptionsFilter());
 
-  // 启用 CORS，允许前端跨域访问
+  // CORS：生产环境通过 CORS_ORIGINS 配置，禁止使用 *
+  const corsOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean)
+    : ['http://localhost:3000', 'http://localhost:5173'];
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'], // 前端开发服务器地址
+    origin: corsOrigins,
     credentials: true,
   });
 

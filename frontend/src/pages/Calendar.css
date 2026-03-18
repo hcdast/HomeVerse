@@ -225,10 +225,63 @@
   flex: 1;
 }
 
+.event-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
 .event-title {
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: 4px;
+}
+
+.event-source-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.event-source-tag.source-calendar {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.event-source-tag.source-todo {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.event-source-tag.source-reminder {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.event-source-tag.source-anniversary {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.event-priority {
+  display: inline-block;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.event-priority.priority-high {
+  color: #e74c3c;
+}
+
+.event-priority.priority-medium {
+  color: #f39c12;
+}
+
+.event-priority.priority-low {
+  color: #27ae60;
 }
 
 .event-date {

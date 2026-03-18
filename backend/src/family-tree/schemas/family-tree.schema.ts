@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema, Types } from 'mongoose';
 
 export type FamilyMemberDocument = FamilyMember & Document;
 
@@ -44,18 +44,18 @@ export class FamilyMember {
   @Prop({ type: String, ref: 'User', required: true })
   createdBy: string;
 
-  @Prop({ type: String, ref: 'User' })
-  linkedUserId: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
+  linkedUserId: Types.ObjectId;
 
-  // 家庭关系
-  @Prop({ type: String, ref: 'FamilyMember' })
-  fatherId: string;
+  // 家庭关系 - 使用 ObjectId 类型，避免空字符串导致的转换错误
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'FamilyMember', default: null })
+  fatherId: Types.ObjectId;
 
-  @Prop({ type: String, ref: 'FamilyMember' })
-  motherId: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'FamilyMember', default: null })
+  motherId: Types.ObjectId;
 
-  @Prop({ type: String, ref: 'FamilyMember' })
-  spouseId: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'FamilyMember', default: null })
+  spouseId: Types.ObjectId;
 
   @Prop()
   generation: number; // 辈分

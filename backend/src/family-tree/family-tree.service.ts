@@ -1,20 +1,56 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { FamilyMember, FamilyMemberDocument } from './schemas/family-tree.schema';
 
 @Injectable()
-export class FamilyTreeService {
+export class FamilyTreeService implements OnModuleInit {
+  private readonly logger = new Logger(FamilyTreeService.name);
+
   constructor(@InjectModel(FamilyMember.name) private memberModel: Model<FamilyMemberDocument>) {}
 
-  // 清理空字符串的 ObjectId 引用字段
-  private cleanObjectIdFields(dto: Partial<FamilyMember>): Partial<FamilyMember> {
-    const cleaned = { ...dto };
-    const refFields: (keyof FamilyMember)[] = ['fatherId', 'motherId', 'spouseId', 'linkedUserId'];
+  // 模块初始化时清理脏数据
+  async onModuleInit() {
+    await this.cleanupInvalidReferences();
+  }
+
+  // 清理数据库中的空字符串引用（脏数据修复）
+  private async cleanupInvalidReferences(): Promise<void> {
+    const refFields = ['fatherId', 'motherId', 'spouseId', 'linkedUserId'];
     
     for (const field of refFields) {
-      if (cleaned[field] === '' || cleaned[field] === null) {
-        delete cleaned[field];
+      try {
+        // 使用原生 collection 操作，绕过 Mongoose schema 类型检查
+        const collection = this.memberModel.collection;
+        const result = await collection.updateMany(
+          { [field]: '' },
+          { $unset: { [field]: 1 } }
+        );
+        if (result.modifiedCount > 0) {
+          this.logger.log(`清理了 ${result.modifiedCount} 条记录的无效 ${field} 引用`);
+        }
+      } catch (error) {
+        // 忽略错误，可能是没有脏数据
+        this.logger.debug(`清理 ${field} 时无脏数据或已清理`);
+      }
+    }
+  }
+
+  // 清理空字符串的 ObjectId 引用字段，将其转换为 null
+  private cleanObjectIdFields(dto: any): any {
+    const cleaned = { ...dto };
+    const refFields = ['fatherId', 'motherId', 'spouseId', 'linkedUserId'];
+    
+    for (const field of refFields) {
+      if (cleaned[field] === '' || cleaned[field] === undefined) {
+        cleaned[field] = null;
+      } else if (cleaned[field] && typeof cleaned[field] === 'string') {
+        // 验证是否为有效的 ObjectId
+        if (Types.ObjectId.isValid(cleaned[field])) {
+          cleaned[field] = new Types.ObjectId(cleaned[field]);
+        } else {
+          cleaned[field] = null;
+        }
       }
     }
     
@@ -48,24 +84,7 @@ export class FamilyTreeService {
   async update(id: string, updateDto: Partial<FamilyMember>): Promise<FamilyMemberDocument> {
     const cleanedDto = this.cleanObjectIdFields(updateDto);
     
-    // 对于引用字段，如果传入空值，需要显式设置为 null 来清除
-    const updateOperation: any = { ...cleanedDto };
-    const refFields = ['fatherId', 'motherId', 'spouseId', 'linkedUserId'];
-    const unsetFields: Record<string, 1> = {};
-    
-    for (const field of refFields) {
-      if (updateDto[field as keyof typeof updateDto] === '' || updateDto[field as keyof typeof updateDto] === null) {
-        unsetFields[field] = 1;
-        delete updateOperation[field];
-      }
-    }
-    
-    const update: any = { $set: updateOperation };
-    if (Object.keys(unsetFields).length > 0) {
-      update.$unset = unsetFields;
-    }
-    
-    const member = await this.memberModel.findByIdAndUpdate(id, update, { new: true });
+    const member = await this.memberModel.findByIdAndUpdate(id, cleanedDto, { new: true });
     if (!member) throw new NotFoundException('成员不存在');
     return member;
   }

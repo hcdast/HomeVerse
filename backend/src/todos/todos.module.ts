@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TodosService } from './todos.service';
 import { TodosController } from './todos.controller';
+import { RecurringService } from './recurring.service';
 import { Todo, TodoSchema } from './schemas/todo.schema';
 
 @Module({
@@ -11,8 +12,8 @@ import { Todo, TodoSchema } from './schemas/todo.schema';
     ]),
   ],
   controllers: [TodosController],
-  providers: [TodosService],
-  exports: [TodosService],
+  providers: [TodosService, RecurringService],
+  exports: [TodosService, RecurringService],
 })
 export class TodosModule {}
 

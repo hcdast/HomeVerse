@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import ReactQuill from 'react-quill';
-import 'quill/dist/quill.snow.css';
+import 'react-quill/dist/quill.snow.css';
 import './RichTextEditor.css';
 
 interface RichTextEditorProps {

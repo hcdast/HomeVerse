@@ -2,19 +2,23 @@ import { useRef, useState } from 'react';
 import './FileUploader.css';
 
 interface FileUploaderProps {
-  onUpload: (file: globalThis.File) => void;
+  onUpload?: (file: globalThis.File) => void;
+  onUploadMultiple?: (files: globalThis.File[]) => void;
   accept?: string;
   multiple?: boolean;
   maxSize?: number; // 字节
+  maxFiles?: number; // 最大文件数量
   disabled?: boolean;
   children?: React.ReactNode;
 }
 
 const FileUploader = ({
   onUpload,
+  onUploadMultiple,
   accept,
   multiple = false,
   maxSize,
+  maxFiles = 100,
   disabled = false,
   children,
 }: FileUploaderProps) => {
@@ -25,16 +29,34 @@ const FileUploader = ({
   const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
-    const file = files[0];
+    const fileArray = Array.from(files);
+    
+    // 检查文件数量
+    if (multiple && fileArray.length > maxFiles) {
+      setError(`最多只能上传 ${maxFiles} 个文件`);
+      return;
+    }
     
     // 检查文件大小
-    if (maxSize && file.size > maxSize) {
-      setError(`文件大小不能超过 ${formatBytes(maxSize)}`);
+    const oversizedFiles = fileArray.filter(file => maxSize && file.size > maxSize);
+    if (oversizedFiles.length > 0) {
+      if (multiple) {
+        setError(`${oversizedFiles.length} 个文件超过大小限制 ${formatBytes(maxSize!)}`);
+      } else {
+        setError(`文件大小不能超过 ${formatBytes(maxSize!)}`);
+      }
       return;
     }
 
     setError('');
-    onUpload(file);
+    
+    // 多文件上传模式
+    if (multiple && onUploadMultiple) {
+      onUploadMultiple(fileArray);
+    } else if (onUpload) {
+      // 单文件上传模式
+      onUpload(fileArray[0]);
+    }
     
     // 重置 input
     if (fileInputRef.current) {

@@ -3,6 +3,9 @@ import { lazy, Suspense } from 'react';
 import { useAuthStore } from './store/authStore';
 import Loading from './components/Loading';
 import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
+import GlobalToast from './components/GlobalToast';
+import AuthExpiredHandler from './components/AuthExpiredHandler';
 
 // 懒加载页面组件
 const Login = lazy(() => import('./pages/Login'));
@@ -45,23 +48,45 @@ const Travels = lazy(() => import('./pages/Travels'));
 const Education = lazy(() => import('./pages/Education'));
 const FamilyTree = lazy(() => import('./pages/FamilyTree'));
 const Books = lazy(() => import('./pages/Books'));
+// 阶段2 新功能页面
+const Chat = lazy(() => import('./pages/Chat'));
+const Templates = lazy(() => import('./pages/Templates'));
+const DataTransfer = lazy(() => import('./pages/DataTransfer'));
+// P0 核心功能页面
+const Points = lazy(() => import('./pages/Points'));
+const Announcements = lazy(() => import('./pages/Announcements'));
+const Digest = lazy(() => import('./pages/Digest'));
+// 阶段3 新功能页面
+const MenuPlanner = lazy(() => import('./pages/MenuPlanner'));
+const Voting = lazy(() => import('./pages/Voting'));
+const Subscriptions = lazy(() => import('./pages/Subscriptions'));
+const Favorites = lazy(() => import('./pages/Favorites'));
+const TimeCapsule = lazy(() => import('./pages/TimeCapsule'));
+const Challenges = lazy(() => import('./pages/Challenges'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-// 受保护的路由组件
+// 受保护的路由组件（未登录时跳转登录页并带上 redirect，登录后可回到原页）
 const ProtectedRoute = () => {
   const { isAuthenticated } = useAuthStore();
-  return isAuthenticated ? <Layout /> : <Navigate to="/login" />;
+  if (isAuthenticated) return <Layout />;
+  const redirect = encodeURIComponent(window.location.pathname + window.location.search || '/');
+  return <Navigate to={`/login?redirect=${redirect}`} replace />;
 };
 
 function App() {
   return (
     <Router>
-      <Suspense fallback={<Loading />}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+      <AuthExpiredHandler />
+      <GlobalToast />
+      <ErrorBoundary>
+        <Suspense fallback={<Loading />}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           <Route path="/" element={<ProtectedRoute />}>
             <Route index element={<Dashboard />} />
             {/* 工作台 */}
+            <Route path="chat" element={<Chat />} />
             <Route path="calendar" element={<Calendar />} />
             <Route path="todos" element={<Todos />} />
             {/* 生活管理 */}
@@ -97,14 +122,29 @@ function App() {
             <Route path="passwords" element={<Passwords />} />
             <Route path="ai-tools" element={<AiTools />} />
             <Route path="ai-settings" element={<AiSettings />} />
+            <Route path="templates" element={<Templates />} />
+            <Route path="data-transfer" element={<DataTransfer />} />
+            {/* P0 核心功能 */}
+            <Route path="points" element={<Points />} />
+            <Route path="announcements" element={<Announcements />} />
+            <Route path="digest" element={<Digest />} />
+            {/* 阶段3 新功能 */}
+            <Route path="menu-planner" element={<MenuPlanner />} />
+            <Route path="voting" element={<Voting />} />
+            <Route path="subscriptions" element={<Subscriptions />} />
+            <Route path="favorites" element={<Favorites />} />
+            <Route path="time-capsule" element={<TimeCapsule />} />
+            <Route path="challenges" element={<Challenges />} />
             {/* 设置 */}
             <Route path="family-members" element={<FamilyMembers />} />
             <Route path="profile" element={<Profile />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="search" element={<Search />} />
           </Route>
-        </Routes>
-      </Suspense>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </Router>
   );
 }

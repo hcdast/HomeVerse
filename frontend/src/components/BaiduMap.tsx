@@ -1,5 +1,5 @@
-import { useEffect, useRef, forwardRef, useImperativeHandle, useState } from 'react';
-import { loadBaiduMapSDK, isBaiduMapLoaded } from '../utils/mapLoader';
+import { useEffect, useRef, forwardRef, useImperativeHandle, useState, useCallback } from 'react';
+import { loadBaiduMapSDK, isBaiduMapLoaded, MapLoadStatus, getLoadStatus } from '../utils/mapLoader';
 import { BAIDU_MAP_CONFIG, MAP_DEFAULT_CONFIG } from '../config';
 
 // 声明百度地图全局类型
@@ -197,9 +197,9 @@ const BaiduMap = forwardRef<BaiduMapRef, BaiduMapProps>(({
     });
   };
 
-  // 处理地图点击选择位置
-  const handleMapClick = async (e: any) => {
-    if (!isSelectModeActive || !window.BMap) return;
+  // 处理地图点击选择位置 - 使用 useCallback 稳定函数引用
+  const handleMapClick = useCallback(async (e: any) => {
+    if (!window.BMap) return;
 
     const point = e.point;
     const address = await getAddressFromPoint(point);
@@ -213,7 +213,7 @@ const BaiduMap = forwardRef<BaiduMapRef, BaiduMapProps>(({
       longitude: point.lng,
       address,
     });
-  };
+  }, [onLocationSelect]);
 
   // 更新选择标记
   const updateSelectMarker = (lat: number, lng: number) => {
@@ -298,26 +298,26 @@ const BaiduMap = forwardRef<BaiduMapRef, BaiduMapProps>(({
   useEffect(() => {
     if (!mapRef.current) return;
 
+    const map = mapRef.current;
+
     if (isSelectModeActive) {
-      mapRef.current.addEventListener('click', handleMapClick);
+      map.addEventListener('click', handleMapClick);
       // 改变鼠标样式
-      mapRef.current.setDefaultCursor('crosshair');
+      map.setDefaultCursor('crosshair');
     } else {
-      mapRef.current.removeEventListener('click', handleMapClick);
-      mapRef.current.setDefaultCursor('default');
+      map.removeEventListener('click', handleMapClick);
+      map.setDefaultCursor('default');
       // 移除选择标记
       if (selectMarkerRef.current) {
-        mapRef.current.removeOverlay(selectMarkerRef.current);
+        map.removeOverlay(selectMarkerRef.current);
         selectMarkerRef.current = null;
       }
     }
 
     return () => {
-      if (mapRef.current) {
-        mapRef.current.removeEventListener('click', handleMapClick);
-      }
+      map.removeEventListener('click', handleMapClick);
     };
-  }, [isSelectModeActive, onLocationSelect]);
+  }, [isSelectModeActive, handleMapClick]);
 
   // 当外部传入选中位置时，显示标记
   useEffect(() => {
@@ -631,7 +631,7 @@ const BaiduMap = forwardRef<BaiduMapRef, BaiduMapProps>(({
           ...style,
         }}
       />
-      {/* 选择模式提示 */}
+      {/* 选择模式提示 - 设置 pointer-events: none 防止阻挡地图点击 */}
       {isSelectModeActive && (
         <div
           style={{
@@ -650,6 +650,7 @@ const BaiduMap = forwardRef<BaiduMapRef, BaiduMapProps>(({
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
+            pointerEvents: 'none',
           }}
         >
           <span style={{ fontSize: '18px' }}>📍</span>

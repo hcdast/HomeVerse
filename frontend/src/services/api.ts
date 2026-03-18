@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useGlobalToastStore } from '@/store/globalToastStore';
 
 // 创建axios实例
 const api = axios.create({
@@ -31,14 +32,16 @@ api.interceptors.request.use(
   }
 );
 
-// 响应拦截器 - 处理错误
+// 响应拦截器 - 处理错误（401 时派发事件，由 App 内统一 logout + Toast 再跳转，保证状态同步）
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // token过期，清除登录状态
-      localStorage.removeItem('auth-storage');
-      window.location.href = '/login';
+      const redirect = encodeURIComponent(window.location.pathname + window.location.search || '/');
+      window.dispatchEvent(new CustomEvent('auth:session-expired', { detail: { redirect } }));
+    } else if (error.response?.status && error.response.status >= 500) {
+      const msg = error.response?.data?.message || '服务异常，请稍后重试';
+      useGlobalToastStore.getState().show(msg, 'error');
     }
     return Promise.reject(error);
   }

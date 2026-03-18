@@ -10,13 +10,16 @@ import {
   Request,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
   NotFoundException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { AlbumsService } from './albums.service';
 import { UsersService } from '../users/users.service';
 import { StorageService } from '../storage/storage.service';
+import { Types } from 'mongoose';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ParseObjectIdPipe } from '../common/pipes/parse-object-id.pipe';
 
 @Controller('albums')
 @UseGuards(JwtAuthGuard)
@@ -47,8 +50,8 @@ export class AlbumsController {
 
   // 获取相册详情
   @Get(':id')
-  async findOne(@Param('id') id: string, @Request() req) {
-    const album = await this.albumsService.findById(id);
+  async findOne(@Param('id', ParseObjectIdPipe) id: Types.ObjectId, @Request() req) {
+    const album = await this.albumsService.findById(id.toString());
     if (!album) {
       throw new NotFoundException('相册不存在');
     }
@@ -64,8 +67,8 @@ export class AlbumsController {
 
   // 更新相册
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateDto: any, @Request() req) {
-    const album = await this.albumsService.findById(id);
+  async update(@Param('id', ParseObjectIdPipe) id: Types.ObjectId, @Body() updateDto: any, @Request() req) {
+    const album = await this.albumsService.findById(id.toString());
     if (!album) {
       throw new NotFoundException('相册不存在');
     }
@@ -76,13 +79,13 @@ export class AlbumsController {
       throw new NotFoundException('无权访问此相册');
     }
     
-    return this.albumsService.update(id, updateDto);
+    return this.albumsService.update(id.toString(), updateDto);
   }
 
   // 删除相册
   @Delete(':id')
-  async remove(@Param('id') id: string, @Request() req) {
-    const album = await this.albumsService.findById(id);
+  async remove(@Param('id', ParseObjectIdPipe) id: Types.ObjectId, @Request() req) {
+    const album = await this.albumsService.findById(id.toString());
     if (!album) {
       throw new NotFoundException('相册不存在');
     }
@@ -108,10 +111,10 @@ export class AlbumsController {
       }
     }
     
-    return this.albumsService.delete(id);
+    return this.albumsService.delete(id.toString());
   }
 
-  // 上传照片到相册
+  // 上传照片到相册（单张）
   @Post(':id/photos')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -126,7 +129,7 @@ export class AlbumsController {
     }),
   )
   async uploadPhoto(
-    @Param('id') id: string,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
     @UploadedFile() file: Express.Multer.File,
     @Request() req,
   ) {
@@ -135,7 +138,7 @@ export class AlbumsController {
     }
     
     // 验证权限
-    const album = await this.albumsService.findById(id);
+    const album = await this.albumsService.findById(id.toString());
     if (!album) {
       throw new NotFoundException('相册不存在');
     }
@@ -159,7 +162,7 @@ export class AlbumsController {
       uploadedAt: new Date(),
     };
     
-    const updatedAlbum = await this.albumsService.addPhoto(id, photo);
+    const updatedAlbum = await this.albumsService.addPhoto(id.toString(), photo);
     return {
       message: '照片上传成功',
       photo: updatedAlbum.photos[updatedAlbum.photos.length - 1],
@@ -168,15 +171,31 @@ export class AlbumsController {
     };
   }
 
-  // 删除照片
-  @Delete(':id/photos/:photoId')
-  async removePhoto(
-    @Param('id') id: string,
-    @Param('photoId') photoId: string,
+  // 批量上传照片到相册
+  @Post(':id/photos/batch')
+  @UseInterceptors(
+    FilesInterceptor('files', 100, {
+      limits: { fileSize: 10 * 1024 * 1024 }, // 每个文件10MB限制
+      fileFilter: (req, file, cb) => {
+        // 只允许图片文件
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
+          return cb(new Error('只支持图片格式：jpg, jpeg, png, gif, webp'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadPhotosBatch(
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+    @UploadedFiles() files: Express.Multer.File[],
     @Request() req,
   ) {
+    if (!files || files.length === 0) {
+      throw new NotFoundException('没有上传任何文件');
+    }
+    
     // 验证权限
-    const album = await this.albumsService.findById(id);
+    const album = await this.albumsService.findById(id.toString());
     if (!album) {
       throw new NotFoundException('相册不存在');
     }
@@ -186,7 +205,66 @@ export class AlbumsController {
       throw new NotFoundException('无权访问此相册');
     }
     
-    const { album: updatedAlbum, deletedPhoto } = await this.albumsService.removePhoto(id, photoId);
+    // 批量上传到 MinIO
+    const photos = [];
+    const uploadResults = [];
+    
+    for (const file of files) {
+      try {
+        const uploadResult = await this.storageService.uploadFile(file, 'photos');
+        uploadResults.push(uploadResult);
+        
+        photos.push({
+          filename: uploadResult.filename,
+          originalName: uploadResult.originalName,
+          path: uploadResult.url,
+          size: uploadResult.size,
+          metadata: {
+            mimeType: uploadResult.mimeType,
+          },
+          uploadedAt: new Date(),
+        });
+      } catch (error) {
+        console.error(`上传照片 ${file.originalname} 失败:`, error);
+        // 继续上传其他文件
+      }
+    }
+    
+    if (photos.length === 0) {
+      throw new NotFoundException('所有照片上传失败');
+    }
+    
+    // 批量添加照片到相册
+    const updatedAlbum = await this.albumsService.addPhotos(id.toString(), photos);
+    
+    return {
+      message: `成功上传 ${photos.length} 张照片`,
+      total: files.length,
+      success: photos.length,
+      failed: files.length - photos.length,
+      album: updatedAlbum,
+    };
+  }
+
+  // 删除照片
+  @Delete(':id/photos/:photoId')
+  async removePhoto(
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+    @Param('photoId', ParseObjectIdPipe) photoId: Types.ObjectId,
+    @Request() req,
+  ) {
+    // 验证权限
+    const album = await this.albumsService.findById(id.toString());
+    if (!album) {
+      throw new NotFoundException('相册不存在');
+    }
+    
+    const user = await this.usersService.findById(req.user.userId);
+    if (album.familyId !== user.familyId) {
+      throw new NotFoundException('无权访问此相册');
+    }
+    
+    const { album: updatedAlbum, deletedPhoto } = await this.albumsService.removePhoto(id.toString(), photoId.toString());
     
     // 从 MinIO 删除照片文件
     if (deletedPhoto && deletedPhoto.path) {

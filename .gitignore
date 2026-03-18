@@ -140,3 +140,5 @@ vite.config.ts.timestamp-*
 
 # Lock files
 package-lock.json
+frontend/dev-dist/sw.js
+frontend/dev-dist/

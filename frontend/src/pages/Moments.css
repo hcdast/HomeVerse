@@ -500,3 +500,142 @@
   }
 }
 
+/* 位置选择器样式 */
+.location-input-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.location-picker-btn {
+  padding: 12px 20px;
+  background: #f5f5f5;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.location-picker-btn:hover {
+  background: #e8e8e8;
+  border-color: #ccc;
+  color: #333;
+}
+
+.selected-location-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.selected-location-display .location-icon {
+  font-size: 16px;
+}
+
+.selected-location-display .location-text {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clear-location-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.1);
+  color: #666;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.clear-location-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+  color: #333;
+}
+
+/* 位置选择器弹窗 */
+.location-picker-modal {
+  max-width: 550px !important;
+}
+
+.location-picker-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.get-current-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.get-current-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.get-current-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.location-picker-map {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.selected-location-info {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.location-address {
+  display: flex;
+  gap: 8px;
+}
+
+.location-address .label {
+  color: #666;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.location-address .value {
+  color: #333;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.location-picker-tip {
+  font-size: 12px;
+  color: #888;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+

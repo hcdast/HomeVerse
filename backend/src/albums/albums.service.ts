@@ -49,6 +49,24 @@ export class AlbumsService {
     return album.save();
   }
 
+  // 批量添加照片到相册
+  async addPhotos(albumId: string, photos: any[]): Promise<AlbumDocument> {
+    const album = await this.albumModel.findById(albumId);
+    if (!album) {
+      throw new NotFoundException('相册不存在');
+    }
+    
+    // 批量添加照片
+    album.photos.push(...photos);
+    
+    // 如果没有封面图片，设置第一张为封面
+    if (!album.coverImage && album.photos.length > 0) {
+      album.coverImage = album.photos[0].path;
+    }
+    
+    return album.save();
+  }
+
   // 从相册删除照片（返回被删除的照片信息用于删除 MinIO 文件）
   async removePhoto(albumId: string, photoId: string): Promise<{ album: AlbumDocument; deletedPhoto: any }> {
     const album = await this.albumModel.findById(albumId);

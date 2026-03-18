@@ -7,7 +7,8 @@ const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get('invite');
-  
+  const redirectTo = searchParams.get('redirect') || '/';
+
   const { register, isAuthenticated } = useAuthStore();
   const [formData, setFormData] = useState({
     username: '',
@@ -19,12 +20,12 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [inviteInfo, setInviteInfo] = useState<any>(null);
 
-  // 如果已登录，重定向到首页
+  // 如果已登录，重定向到原目标页或首页
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate(redirectTo.startsWith('/') ? redirectTo : '/', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, redirectTo]);
 
   // 解析邀请信息
   useEffect(() => {
@@ -73,7 +74,7 @@ const Register = () => {
     try {
       // 注册时携带邀请token
       await register(formData.username, formData.email, formData.password, inviteToken);
-      navigate('/');
+      navigate(redirectTo.startsWith('/') ? redirectTo : '/', { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || '注册失败，请重试');
     } finally {

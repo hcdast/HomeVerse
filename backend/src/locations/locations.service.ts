@@ -158,7 +158,7 @@ export class LocationsService {
     return diffMinutes >= intervalMinutes;
   }
 
-  // 更新每日路线
+  // 更新每日路线（使用 upsert 避免并发创建重复记录）
   private async updateDailyRoute(
     userId: string,
     familyId: string,
@@ -177,24 +177,33 @@ export class LocationsService {
     const memberIds = familyLocations.map((l) => l.userId.toString());
     const color = this.getUserColor(userId, memberIds);
 
-    let route = await this.dailyRouteModel.findOne({ userId, dateKey });
+    // 使用 findOneAndUpdate + upsert 避免并发时的重复键错误
+    const existingRoute = await this.dailyRouteModel.findOne({ userId, dateKey });
 
-    if (!route) {
-      // 创建新的每日路线
-      route = await this.dailyRouteModel.create({
-        userId,
-        familyId,
-        dateKey,
-        date: new Date(dateKey),
-        points: [point],
-        startAddress: point.address || point.poiName,
-        color,
-      });
+    if (!existingRoute) {
+      // 使用 upsert 创建或更新，避免并发重复键错误
+      await this.dailyRouteModel.findOneAndUpdate(
+        { userId, dateKey },
+        {
+          $setOnInsert: {
+            userId,
+            familyId,
+            dateKey,
+            date: new Date(dateKey),
+            startAddress: point.address || point.poiName,
+            color,
+            totalDistance: 0,
+            duration: 0,
+          },
+          $push: { points: point },
+        },
+        { upsert: true, new: true },
+      );
     } else {
       // 计算与上一个点的距离
       let addedDistance = 0;
-      if (route.points.length > 0) {
-        const lastPoint = route.points[route.points.length - 1];
+      if (existingRoute.points.length > 0) {
+        const lastPoint = existingRoute.points[existingRoute.points.length - 1];
         addedDistance = this.calculateDistance(
           lastPoint.latitude,
           lastPoint.longitude,
@@ -203,21 +212,26 @@ export class LocationsService {
         );
       }
 
-      // 添加新点并更新统计
-      route.points.push(point);
-      route.totalDistance += addedDistance;
-      route.endAddress = point.address || point.poiName;
-
-      // 计算时长
-      if (route.points.length >= 2) {
-        const firstPoint = route.points[0];
-        const lastPoint = route.points[route.points.length - 1];
-        route.duration =
-          (lastPoint.recordedAt.getTime() - firstPoint.recordedAt.getTime()) /
-          1000;
+      // 计算新的时长
+      let newDuration = existingRoute.duration || 0;
+      if (existingRoute.points.length >= 1) {
+        const firstPoint = existingRoute.points[0];
+        newDuration =
+          (point.recordedAt.getTime() - firstPoint.recordedAt.getTime()) / 1000;
       }
 
-      await route.save();
+      // 原子更新：添加新点并更新统计
+      await this.dailyRouteModel.findOneAndUpdate(
+        { userId, dateKey },
+        {
+          $push: { points: point },
+          $inc: { totalDistance: addedDistance },
+          $set: {
+            endAddress: point.address || point.poiName,
+            duration: newDuration,
+          },
+        },
+      );
     }
   }
 

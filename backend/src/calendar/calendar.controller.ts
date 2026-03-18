@@ -31,6 +31,21 @@ export class CalendarController {
     return this.perpetualCalendarService.getPerpetualCalendar(Number(year), Number(month));
   }
 
+  // 获取聚合事件（整合日历、待办、提醒、纪念日）
+  @Get('aggregated/:year/:month')
+  async getAggregatedEvents(
+    @Param('year') year: number,
+    @Param('month') month: number,
+    @Request() req,
+  ) {
+    return this.calendarService.getAggregatedEvents(
+      req.user.familyId,
+      req.user.userId,
+      Number(year),
+      Number(month),
+    );
+  }
+
   // 获取家庭事件
   @Get('family')
   async getFamilyEvents(

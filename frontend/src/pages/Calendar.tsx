@@ -38,11 +38,14 @@ const Calendar = () => {
 
   const loadData = async () => {
     try {
-      const [eventsResp, calendarResp] = await Promise.all([
-        api.get('/calendar/family'),
-        api.get(`/calendar/perpetual/${currentDate.getFullYear()}/${currentDate.getMonth() + 1}`),
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      
+      const [aggregatedResp, calendarResp] = await Promise.all([
+        api.get(`/calendar/aggregated/${year}/${month}`),
+        api.get(`/calendar/perpetual/${year}/${month}`),
       ]);
-      const events = Array.isArray(eventsResp.data) ? eventsResp.data : [];
+      const events = Array.isArray(aggregatedResp.data) ? aggregatedResp.data : [];
       setEvents(events);
       setCalendarData(calendarResp.data);
     } catch (error) {
@@ -189,17 +192,21 @@ const Calendar = () => {
             <div className="events-list">
               {events.map((event: any) => (
                 <div 
-                  key={event._id} 
+                  key={`${event.source}-${event._id}`} 
                   className={`event-item ${event.status === 'completed' ? 'completed' : ''}`}
+                  style={{ borderLeftColor: event.color || '#3498db' }}
                 >
-                  <span className="event-icon">
-                    {event.type === 'birthday' ? '🎂' : 
-                     event.type === 'anniversary' ? '💝' : 
-                     event.type === 'todo' ? '✅' : 
-                     event.type === 'reminder' ? '⏰' : '📌'}
-                  </span>
+                  <span className="event-icon">{event.icon || '📌'}</span>
                   <div className="event-info">
-                    <div className="event-title">{event.title}</div>
+                    <div className="event-title-row">
+                      <span className="event-title">{event.title}</span>
+                      <span className={`event-source-tag source-${event.source}`}>
+                        {event.source === 'calendar' ? '日历' :
+                         event.source === 'todo' ? '待办' :
+                         event.source === 'reminder' ? '提醒' :
+                         event.source === 'anniversary' ? '纪念日' : '事件'}
+                      </span>
+                    </div>
                     <div className="event-date">
                       {new Date(event.startDate).toLocaleDateString('zh-CN', {
                         month: 'long',
@@ -209,6 +216,12 @@ const Calendar = () => {
                         minute: event.allDay ? undefined : '2-digit'
                       })}
                     </div>
+                    {event.priority && (
+                      <span className={`event-priority priority-${event.priority}`}>
+                        {event.priority === 'high' ? '🔴 高优先级' :
+                         event.priority === 'medium' ? '🟡 中优先级' : '🟢 低优先级'}
+                      </span>
+                    )}
                     {event.location && (
                       <div className="event-location">📍 {event.location}</div>
                     )}
@@ -217,7 +230,7 @@ const Calendar = () => {
                     )}
                   </div>
                   <div className="event-actions">
-                    {(event.type === 'todo' || event.type === 'reminder') && (
+                    {event.source === 'calendar' && (event.type === 'todo' || event.type === 'reminder') && (
                       <button
                         className={`status-btn ${event.status === 'completed' ? 'completed' : ''}`}
                         onClick={(e) => handleToggleStatus(event._id, event.status, e)}
@@ -226,13 +239,15 @@ const Calendar = () => {
                         {event.status === 'completed' ? '✓' : '○'}
                       </button>
                     )}
-                    <button
-                      className="delete-event-btn"
-                      onClick={(e) => handleDeleteEvent(event._id, e)}
-                      title="删除事件"
-                    >
-                      🗑️
-                    </button>
+                    {event.source === 'calendar' && (
+                      <button
+                        className="delete-event-btn"
+                        onClick={(e) => handleDeleteEvent(event._id, e)}
+                        title="删除事件"
+                      >
+                        🗑️
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

@@ -1,0 +1,569 @@
+.digest-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.page-subtitle {
+  color: #666;
+  margin: 4px 0 0;
+}
+
+.generate-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-generate {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-generate:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-generate.daily {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  color: white;
+}
+
+.btn-generate.weekly {
+  background: linear-gradient(135deg, #52c41a, #73d13d);
+  color: white;
+}
+
+.btn-generate.monthly {
+  background: linear-gradient(135deg, #722ed1, #9254de);
+  color: white;
+}
+
+/* 标签页 */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 12px;
+}
+
+.tab {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.tab:hover {
+  background: #f5f5f5;
+}
+
+.tab.active {
+  background: #667eea;
+  color: white;
+}
+
+/* 报告内容 */
+.digest-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.digest-header-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 32px;
+  color: white;
+}
+
+.digest-title-section {
+  text-align: center;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.type-badge.type-daily {
+  background: rgba(24, 144, 255, 0.2);
+  color: #91d5ff;
+}
+
+.type-badge.type-weekly {
+  background: rgba(82, 196, 26, 0.2);
+  color: #b7eb8f;
+}
+
+.type-badge.type-monthly {
+  background: rgba(114, 46, 209, 0.2);
+  color: #d3adf7;
+}
+
+.digest-title-section h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+}
+
+.date-range {
+  margin: 0;
+  opacity: 0.8;
+  font-size: 15px;
+}
+
+/* 区块卡片 */
+.section-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.section-card h3 {
+  margin: 0 0 20px;
+  font-size: 18px;
+  color: #1a1a2e;
+}
+
+/* AI总结 */
+.ai-summary {
+  background: linear-gradient(135deg, #f0f5ff, #fff);
+  border: 1px solid #d6e4ff;
+}
+
+.ai-content p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+  margin: 0;
+}
+
+.ai-suggestions {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #d6e4ff;
+}
+
+.ai-suggestions h4 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: #1890ff;
+}
+
+.ai-suggestions p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* 统计网格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.stat-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* 财务概览 */
+.finance-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.finance-item {
+  text-align: center;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.finance-item.income {
+  background: #f6ffed;
+}
+
+.finance-item.expense {
+  background: #fff1f0;
+}
+
+.finance-item.balance {
+  background: #e6f7ff;
+}
+
+.finance-item .label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.finance-item .value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.finance-item.income .value {
+  color: #52c41a;
+}
+
+.finance-item.expense .value {
+  color: #ff4d4f;
+}
+
+.finance-item.balance .value {
+  color: #1890ff;
+}
+
+/* 成员贡献 */
+.contributions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contribution-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.contribution-item.rank-1 {
+  background: linear-gradient(135deg, #fff7e6, #fff);
+  border: 1px solid #ffd700;
+}
+
+.contribution-item.rank-2 {
+  background: linear-gradient(135deg, #f5f5f5, #fff);
+  border: 1px solid #c0c0c0;
+}
+
+.contribution-item.rank-3 {
+  background: linear-gradient(135deg, #fff5f0, #fff);
+  border: 1px solid #cd7f32;
+}
+
+.contribution-item .rank {
+  font-size: 24px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.contribution-item .member-info {
+  flex: 1;
+}
+
+.contribution-item .username {
+  display: block;
+  font-weight: 600;
+  font-size: 16px;
+  color: #1a1a2e;
+}
+
+.contribution-item .stats {
+  font-size: 13px;
+  color: #999;
+}
+
+.contribution-item .points {
+  text-align: right;
+}
+
+.contribution-item .points-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.contribution-item .points-label {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 亮点时刻 */
+.highlights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.highlight-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #fffbe6;
+  border-radius: 12px;
+  border-left: 4px solid #faad14;
+}
+
+.highlight-icon {
+  font-size: 32px;
+}
+
+.highlight-content h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.highlight-content p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* 即将到来 */
+.upcoming-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.upcoming-list li {
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.upcoming-list li::before {
+  content: '📌 ';
+}
+
+/* 历史记录 */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.history-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.history-item.selected {
+  border: 2px solid #667eea;
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-info h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.history-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #999;
+}
+
+.history-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: #666;
+}
+
+/* 设置区域 */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.setting-info h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.setting-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #999;
+}
+
+/* 开关样式 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 26px;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+.time-setting {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.time-setting label {
+  font-weight: 500;
+}
+
+.time-setting input {
+  padding: 10px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #999;
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.empty-state .hint {
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .generate-buttons {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .btn-generate {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .finance-stats {
+    grid-template-columns: 1fr;
+  }
+}

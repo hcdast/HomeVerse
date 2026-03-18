@@ -29,6 +29,13 @@ const getImageUrl = (path: string): string => {
   return `/api${path}`;
 };
 
+interface UploadProgress {
+  total: number;
+  uploaded: number;
+  failed: number;
+  status: 'idle' | 'uploading' | 'completed';
+}
+
 const Albums = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,9 +44,15 @@ const Albums = () => {
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [showAlbumDetail, setShowAlbumDetail] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
+    total: 0,
+    uploaded: 0,
+    failed: 0,
+    status: 'idle',
+  });
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const { confirm, ConfirmDialogComponent } = useConfirm();
-  const { toast, hideToast, error } = useToast();
+  const { toast, hideToast, error, success } = useToast();
 
   useEffect(() => {
     fetchAlbums();
@@ -69,6 +82,7 @@ const Albums = () => {
     }
   };
 
+  // 单张照片上传（保留向后兼容）
   const handleUploadPhoto = async (file: File) => {
     if (!selectedAlbum) return;
 
@@ -86,9 +100,76 @@ const Albums = () => {
       const response = await api.get(`/albums/${selectedAlbum._id}`);
       setSelectedAlbum(response.data);
       fetchAlbums(); // 更新列表
+      success('照片上传成功');
     } catch (err) {
       console.error('上传照片失败:', err);
       error('上传照片失败，请重试');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  // 批量照片上传
+  const handleUploadPhotos = async (files: File[]) => {
+    if (!selectedAlbum) return;
+
+    setUploadingPhoto(true);
+    setUploadProgress({
+      total: files.length,
+      uploaded: 0,
+      failed: 0,
+      status: 'uploading',
+    });
+
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    try {
+      const response = await api.post(`/albums/${selectedAlbum._id}/photos/batch`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      const result = response.data;
+      setUploadProgress({
+        total: result.total,
+        uploaded: result.success,
+        failed: result.failed,
+        status: 'completed',
+      });
+      
+      // 重新获取相册详情
+      const albumResponse = await api.get(`/albums/${selectedAlbum._id}`);
+      setSelectedAlbum(albumResponse.data);
+      fetchAlbums(); // 更新列表
+      
+      if (result.failed > 0) {
+        success(`成功上传 ${result.success} 张照片，${result.failed} 张失败`);
+      } else {
+        success(`成功上传 ${result.success} 张照片`);
+      }
+      
+      // 3秒后重置进度状态
+      setTimeout(() => {
+        setUploadProgress({
+          total: 0,
+          uploaded: 0,
+          failed: 0,
+          status: 'idle',
+        });
+      }, 3000);
+    } catch (err) {
+      console.error('批量上传照片失败:', err);
+      error('批量上传照片失败，请重试');
+      setUploadProgress({
+        total: files.length,
+        uploaded: 0,
+        failed: files.length,
+        status: 'completed',
+      });
     } finally {
       setUploadingPhoto(false);
     }
@@ -221,18 +302,50 @@ const Albums = () => {
             {/* 上传照片区域 */}
             <div className="album-upload-section">
               <FileUploader
+                onUploadMultiple={handleUploadPhotos}
                 onUpload={handleUploadPhoto}
                 accept="image/*"
+                multiple={true}
                 maxSize={10 * 1024 * 1024}
+                maxFiles={100}
                 disabled={uploadingPhoto}
               >
                 <div className="file-uploader-content">
                   <div className="file-uploader-icon">{uploadingPhoto ? '⏳' : '📤'}</div>
                   <div className="file-uploader-text">
-                    {uploadingPhoto ? '上传中...' : '点击或拖拽照片到此处上传'}
+                    {uploadingPhoto 
+                      ? `上传中... ${uploadProgress.uploaded}/${uploadProgress.total}`
+                      : '点击或拖拽照片到此处上传（支持批量）'}
                   </div>
+                  {!uploadingPhoto && (
+                    <div className="file-uploader-hint">最多一次上传100张，单张不超过10MB</div>
+                  )}
                 </div>
               </FileUploader>
+              
+              {/* 上传进度条 */}
+              {uploadProgress.status !== 'idle' && (
+                <div className="upload-progress">
+                  <div className="upload-progress-bar">
+                    <div 
+                      className="upload-progress-fill"
+                      style={{ 
+                        width: `${uploadProgress.total > 0 
+                          ? (uploadProgress.uploaded / uploadProgress.total) * 100 
+                          : 0}%` 
+                      }}
+                    />
+                  </div>
+                  <div className="upload-progress-text">
+                    {uploadProgress.status === 'uploading' 
+                      ? `正在上传 ${uploadProgress.uploaded}/${uploadProgress.total} 张照片...`
+                      : uploadProgress.failed > 0
+                        ? `已完成：成功 ${uploadProgress.uploaded} 张，失败 ${uploadProgress.failed} 张`
+                        : `全部上传完成：${uploadProgress.uploaded} 张照片`
+                    }
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 照片网格 */}
